@@ -14,8 +14,19 @@ export type HabitPhase = 'phase_1_observe' | 'phase_2_replace' | 'phase_3_quit'
 export type PracticeLevel = 'full' | 'minimum' | 'non_negotiable' | 'missed'
 export type Theme = 'sage-terracotta' | 'amber-plum' | 'midnight-gold' | 'rose-charcoal'
 
+// Makes nullable fields optional for inserts
+type InsertOf<T> = {
+  [K in keyof T as null extends T[K] ? never : K]: T[K]
+} & {
+  [K in keyof T as null extends T[K] ? K : never]?: T[K]
+}
+
 export interface Database {
   public: {
+    Views: Record<string, never>
+    Functions: Record<string, never>
+    Enums: Record<string, never>
+    CompositeTypes: Record<string, never>
     Tables: {
       habits: {
         Row: {
@@ -31,8 +42,9 @@ export interface Database {
           schedule: Json | null
           created_at: string
         }
-        Insert: Omit<Database['public']['Tables']['habits']['Row'], 'id' | 'created_at'>
+        Insert: Omit<InsertOf<Database['public']['Tables']['habits']['Row']>, 'id' | 'created_at'>
         Update: Partial<Database['public']['Tables']['habits']['Insert']>
+        Relationships: []
       }
       checkins: {
         Row: {
@@ -51,8 +63,9 @@ export interface Database {
           sentence_note: string | null
           created_at: string
         }
-        Insert: Omit<Database['public']['Tables']['checkins']['Row'], 'id' | 'created_at'>
+        Insert: Omit<InsertOf<Database['public']['Tables']['checkins']['Row']>, 'id' | 'created_at'>
         Update: Partial<Database['public']['Tables']['checkins']['Insert']>
+        Relationships: []
       }
       observations: {
         Row: {
@@ -68,8 +81,9 @@ export interface Database {
           physical_sensation: string | null
           created_at: string
         }
-        Insert: Omit<Database['public']['Tables']['observations']['Row'], 'id' | 'created_at'>
+        Insert: Omit<InsertOf<Database['public']['Tables']['observations']['Row']>, 'id' | 'created_at'>
         Update: Partial<Database['public']['Tables']['observations']['Insert']>
+        Relationships: []
       }
       collapses: {
         Row: {
@@ -84,8 +98,9 @@ export interface Database {
           return_confirmed: boolean | null
           created_at: string
         }
-        Insert: Omit<Database['public']['Tables']['collapses']['Row'], 'id' | 'created_at'>
+        Insert: Omit<InsertOf<Database['public']['Tables']['collapses']['Row']>, 'id' | 'created_at'>
         Update: Partial<Database['public']['Tables']['collapses']['Insert']>
+        Relationships: []
       }
       urge_logs: {
         Row: {
@@ -99,8 +114,9 @@ export interface Database {
           note: string | null
           created_at: string
         }
-        Insert: Omit<Database['public']['Tables']['urge_logs']['Row'], 'id' | 'created_at'>
+        Insert: Omit<InsertOf<Database['public']['Tables']['urge_logs']['Row']>, 'id' | 'created_at'>
         Update: Partial<Database['public']['Tables']['urge_logs']['Insert']>
+        Relationships: []
       }
       weekly_reviews: {
         Row: {
@@ -115,8 +131,9 @@ export interface Database {
           sentence_carrying: string | null
           created_at: string
         }
-        Insert: Omit<Database['public']['Tables']['weekly_reviews']['Row'], 'id' | 'created_at'>
+        Insert: Omit<InsertOf<Database['public']['Tables']['weekly_reviews']['Row']>, 'id' | 'created_at'>
         Update: Partial<Database['public']['Tables']['weekly_reviews']['Insert']>
+        Relationships: []
       }
       settings: {
         Row: {
@@ -126,8 +143,9 @@ export interface Database {
           night_before_prompts: Json | null
           updated_at: string
         }
-        Insert: Omit<Database['public']['Tables']['settings']['Row'], 'id' | 'updated_at'>
+        Insert: Omit<InsertOf<Database['public']['Tables']['settings']['Row']>, 'id' | 'updated_at'>
         Update: Partial<Database['public']['Tables']['settings']['Insert']>
+        Relationships: []
       }
     }
   }
