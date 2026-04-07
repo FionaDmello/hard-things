@@ -6,7 +6,7 @@ export const Route = createFileRoute('/break')({
 })
 
 function BreakHabits() {
-  const habits = useHabitStore((state) => state.getHabitsBySection('A'))
+  const habits = useHabitStore((state) => state.getHabitsBySection('break'))
 
   return (
     <div className="p-6 max-w-2xl mx-auto">

@@ -6,7 +6,7 @@ export const Route = createFileRoute('/build')({
 })
 
 function BuildHabits() {
-  const habits = useHabitStore((state) => state.getHabitsBySection('B'))
+  const habits = useHabitStore((state) => state.getHabitsBySection('build'))
 
   return (
     <div className="p-6 max-w-2xl mx-auto">

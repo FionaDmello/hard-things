@@ -8,7 +8,7 @@ create extension if not exists "uuid-ossp";
 create table public.habits (
   id uuid primary key default uuid_generate_v4(),
   user_id uuid references auth.users(id) on delete cascade not null,
-  section text not null check (section in ('A', 'B')),
+  section text not null check (section in ('break', 'build')),
   name text not null,
   versions jsonb not null default '{}',
   drivers text[] not null default '{}',
@@ -25,7 +25,7 @@ create table public.checkins (
   user_id uuid references auth.users(id) on delete cascade not null,
   habit_id uuid references public.habits(id) on delete cascade not null,
   date date not null,
-  section text not null check (section in ('A', 'B')),
+  section text not null check (section in ('break', 'build')),
   occurred boolean,
   practice_level text check (practice_level in ('full', 'minimum', 'non_negotiable', 'missed')),
   job_if_slipped text,
@@ -38,7 +38,7 @@ create table public.checkins (
   unique(user_id, habit_id, date)
 );
 
--- Observations table (Phase 1 logging for Section A habits)
+-- Observations table (Phase 1 logging for break habits)
 create table public.observations (
   id uuid primary key default uuid_generate_v4(),
   user_id uuid references auth.users(id) on delete cascade not null,
@@ -58,10 +58,10 @@ create table public.collapses (
   id uuid primary key default uuid_generate_v4(),
   user_id uuid references auth.users(id) on delete cascade not null,
   habit_id uuid references public.habits(id) on delete cascade not null,
-  section text not null check (section in ('A', 'B')),
+  section text not null check (section in ('break', 'build')),
   what_happened text not null,
   what_gave_way text,
-  job_if_section_a text,
+  job_if_break text,
   replacement_unavailable text,
   return_confirmed boolean,
   created_at timestamptz not null default now()

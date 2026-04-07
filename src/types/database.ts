@@ -9,7 +9,7 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[]
 
-export type HabitSection = 'A' | 'B'
+export type HabitSection = 'break' | 'build'
 export type HabitPhase = 'phase_1_observe' | 'phase_2_replace' | 'phase_3_quit'
 export type PracticeLevel = 'full' | 'minimum' | 'non_negotiable' | 'missed'
 export type Theme = 'sage-terracotta' | 'amber-plum' | 'midnight-gold' | 'rose-charcoal'
@@ -79,7 +79,7 @@ export interface Database {
           section: HabitSection
           what_happened: string
           what_gave_way: string | null
-          job_if_section_a: string | null
+          job_if_break: string | null
           replacement_unavailable: string | null
           return_confirmed: boolean | null
           created_at: string

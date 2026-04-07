@@ -9,7 +9,7 @@ interface HabitState {
   setHabits: (habits: Habit[]) => void
   setIsLoaded: (isLoaded: boolean) => void
   getHabitById: (id: string) => Habit | undefined
-  getHabitsBySection: (section: 'A' | 'B') => Habit[]
+  getHabitsBySection: (section: 'break' | 'build') => Habit[]
 }
 
 export const useHabitStore = create<HabitState>((set, get) => ({
