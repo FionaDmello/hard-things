@@ -28,38 +28,42 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
   const { setTheme, setHasSelectedTheme } = useThemeStore()
   const { setHabits } = useHabitStore()
 
+  function loadUserData(userId: string) {
+    supabase
+      .from('settings')
+      .select('selected_theme')
+      .eq('user_id', userId)
+      .single()
+      .then(({ data }) => {
+        if (data?.selected_theme) {
+          setTheme(data.selected_theme)
+          setHasSelectedTheme(true)
+        }
+      })
+
+    supabase
+      .from('habits')
+      .select('*')
+      .eq('user_id', userId)
+      .then(({ data }) => {
+        if (data) setHabits(data)
+      })
+  }
+
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session)
       setIsLoading(false)
-
-      if (session?.user) {
-        supabase
-          .from('settings')
-          .select('selected_theme')
-          .eq('user_id', session.user.id)
-          .single()
-          .then(({ data }) => {
-            if (data?.selected_theme) {
-              setTheme(data.selected_theme)
-              setHasSelectedTheme(true)
-            }
-          })
-
-        supabase
-          .from('habits')
-          .select('*')
-          .eq('user_id', session.user.id)
-          .then(({ data }) => {
-            if (data) setHabits(data)
-          })
-      }
+      if (session?.user) loadUserData(session.user.id)
     })
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange((event, session) => {
       setSession(session)
+      if (event === 'SIGNED_IN' && session?.user) {
+        loadUserData(session.user.id)
+      }
     })
 
     return () => subscription.unsubscribe()
