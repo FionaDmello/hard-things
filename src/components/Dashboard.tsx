@@ -1,7 +1,12 @@
+import { useState } from 'react'
 import { Link } from '@tanstack/react-router'
 import { getTodayExerciseType, isLightestGymDay } from '../stores'
+import { NightBeforePrompt } from './NightBeforePrompt'
+import { WeeklyReview } from './WeeklyReview'
+import { CollapseHandler } from './CollapseHandler'
 
 export function Dashboard() {
+  const [showCollapse, setShowCollapse] = useState(false)
   const today = new Date()
   const dayName = today.toLocaleDateString('en-US', { weekday: 'long' })
   const dateStr = today.toLocaleDateString('en-US', {
@@ -18,6 +23,8 @@ export function Dashboard() {
         <h1 className="text-2xl font-semibold text-primary">{dateStr}</h1>
       </header>
 
+      <NightBeforePrompt />
+
       {/* Today's scheduled habit */}
       <section className="mb-8">
         <div className="bg-accent-light p-4 rounded-lg border border-mid/20">
@@ -32,15 +39,22 @@ export function Dashboard() {
         </div>
       </section>
 
+      <WeeklyReview />
+
       {/* Quick access buttons */}
       <section className="mb-8 space-y-3">
         <button className="w-full py-3 px-4 bg-primary text-light rounded-lg text-left">
           Urge Protocol
         </button>
-        <button className="w-full py-3 px-4 bg-mid/20 text-primary rounded-lg text-left">
+        <button
+          onClick={() => setShowCollapse(true)}
+          className="w-full py-3 px-4 bg-mid/20 text-primary rounded-lg text-left"
+        >
           Collapse Handler
         </button>
       </section>
+
+      {showCollapse && <CollapseHandler onClose={() => setShowCollapse(false)} />}
 
       {/* Navigation */}
       <nav className="grid grid-cols-2 gap-3">

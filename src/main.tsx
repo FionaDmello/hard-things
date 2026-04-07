@@ -4,7 +4,7 @@ import { RouterProvider, createRouter } from '@tanstack/react-router'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { routeTree } from './routeTree.gen'
 import { supabase } from './lib/supabase'
-import { useAuthStore, useThemeStore } from './stores'
+import { useAuthStore, useThemeStore, useHabitStore } from './stores'
 import './index.css'
 
 const queryClient = new QueryClient({
@@ -26,6 +26,7 @@ declare module '@tanstack/react-router' {
 function AuthProvider({ children }: { children: React.ReactNode }) {
   const { setSession, setIsLoading } = useAuthStore()
   const { setTheme, setHasSelectedTheme } = useThemeStore()
+  const { setHabits } = useHabitStore()
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -43,6 +44,14 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
               setTheme(data.selected_theme)
               setHasSelectedTheme(true)
             }
+          })
+
+        supabase
+          .from('habits')
+          .select('*')
+          .eq('user_id', session.user.id)
+          .then(({ data }) => {
+            if (data) setHabits(data)
           })
       }
     })

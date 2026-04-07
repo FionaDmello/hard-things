@@ -1,12 +1,14 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useHabitStore } from '../stores'
+import { HabitReferenceCard } from '../components/HabitReferenceCard'
+import { CheckInFormBreak } from '../components/CheckInFormBreak'
 
 export const Route = createFileRoute('/break')({
   component: BreakHabits,
 })
 
 function BreakHabits() {
-  const habits = useHabitStore((state) => state.getHabitsBySection('break'))
+  const habits = useHabitStore((state) => state.habits).filter((h) => h.section === 'break')
 
   return (
     <div className="p-6 max-w-2xl mx-auto">
@@ -26,10 +28,12 @@ function BreakHabits() {
             >
               <h2 className="font-medium text-primary">{habit.name}</h2>
               {habit.current_phase && (
-                <p className="text-sm text-mid mt-1">
-                  Phase: {habit.current_phase.replace(/_/g, ' ')}
+                <p className="text-sm text-mid mt-1 capitalize">
+                  {habit.current_phase.replace(/_/g, ' ')}
                 </p>
               )}
+              <CheckInFormBreak habit={habit} />
+              <HabitReferenceCard habit={habit} />
             </div>
           ))}
         </div>

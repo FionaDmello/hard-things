@@ -1,12 +1,14 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useHabitStore } from '../stores'
+import { HabitReferenceCard } from '../components/HabitReferenceCard'
+import { CheckInFormBuild } from '../components/CheckInFormBuild'
 
 export const Route = createFileRoute('/build')({
   component: BuildHabits,
 })
 
 function BuildHabits() {
-  const habits = useHabitStore((state) => state.getHabitsBySection('build'))
+  const habits = useHabitStore((state) => state.habits).filter((h) => h.section === 'build')
 
   return (
     <div className="p-6 max-w-2xl mx-auto">
@@ -25,6 +27,8 @@ function BuildHabits() {
               className="bg-accent-light p-4 rounded-lg border border-mid/20"
             >
               <h2 className="font-medium text-primary">{habit.name}</h2>
+              <CheckInFormBuild habit={habit} />
+              <HabitReferenceCard habit={habit} />
             </div>
           ))}
         </div>
