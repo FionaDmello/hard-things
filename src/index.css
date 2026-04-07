@@ -1,0 +1,61 @@
+@import 'tailwindcss';
+
+/* Theme CSS Custom Properties */
+:root {
+  /* Default: Warm Amber & Plum */
+  --color-primary: #4A2C6E;
+  --color-mid: #7A4FA0;
+  --color-light: #F0E8F8;
+  --color-accent: #C0703A;
+  --color-accent-light: #FAF0E8;
+}
+
+[data-theme='sage-terracotta'] {
+  --color-primary: #3D5A47;
+  --color-mid: #6B8F71;
+  --color-light: #EAF2EC;
+  --color-accent: #B85C38;
+  --color-accent-light: #FBF3EE;
+}
+
+[data-theme='amber-plum'] {
+  --color-primary: #4A2C6E;
+  --color-mid: #7A4FA0;
+  --color-light: #F0E8F8;
+  --color-accent: #C0703A;
+  --color-accent-light: #FAF0E8;
+}
+
+[data-theme='midnight-gold'] {
+  --color-primary: #1A2E4A;
+  --color-mid: #2E5480;
+  --color-light: #E8F0F8;
+  --color-accent: #B8860B;
+  --color-accent-light: #FBF8EE;
+}
+
+[data-theme='rose-charcoal'] {
+  --color-primary: #4A3040;
+  --color-mid: #8B5A6A;
+  --color-light: #F8EEF2;
+  --color-accent: #6B6B6B;
+  --color-accent-light: #F5F3F0;
+}
+
+/* Tailwind theme extension via CSS */
+@theme {
+  --color-primary: var(--color-primary);
+  --color-mid: var(--color-mid);
+  --color-light: var(--color-light);
+  --color-accent: var(--color-accent);
+  --color-accent-light: var(--color-accent-light);
+}
+
+body {
+  @apply bg-light text-primary min-h-screen antialiased;
+  margin: 0;
+}
+
+#root {
+  min-height: 100svh;
+}
