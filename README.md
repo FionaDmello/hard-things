@@ -1,73 +1,65 @@
-# React + TypeScript + Vite
+# Hard Things
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A personal habit tracking app for breaking habits and building new ones.
 
-Currently, two official plugins are available:
+## Stack
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- **React 19** + TypeScript + Vite
+- **TanStack Router** — file-based routing with full type safety
+- **TanStack Query** — server state, caching, and mutations
+- **Zustand** — global state for auth, theme, and habits
+- **Supabase** — Postgres database, auth, and row-level security
+- **Tailwind CSS v4** — utility styling with CSS custom property theming
 
-## React Compiler
+## Structure
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```
+src/
+  components/       UI components (check-in forms, collapse handler, etc.)
+  routes/           TanStack Router file-based routes
+  stores/           Zustand stores (auth, habit, theme, schedule)
+  types/            Supabase database types
+  lib/              Supabase client
+supabase/
+  schema.sql        Full database schema, RLS policies, RPC functions
+  seed.sql          Seed data for development
+design/             Architecture decision records
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Features
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+**Section A — Habits to break**
+- Phase-based progression: observe → replace → quit
+- Daily check-in with slip/clean tracking, job identification, urge intensity
+- Collapse handler for processing a full slip
+- Observation logger (phase 1)
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+**Section B — Habits to build**
+- Practice levels: full / minimum / non-negotiable
+- Daily check-in with practice level, resistance note
+- Collapse handler for missed days with return protocol
+- Weekly schedule per sub-habit (e.g. yoga / gym)
+
+**App-wide**
+- Night-before prompt for next-day preparation
+- Weekly review
+- Habit reference card (drivers, versions, distress tolerance, discernment question)
+- Four selectable themes
+
+## Database
+
+Habits are stored in a generic `habits` table with three junction tables (`habit_drivers`, `habit_versions`, `habit_schedule`). Data is fetched and shaped into a UI-ready structure by a Postgres RPC function (`get_user_habits`) rather than on the frontend.
+
+All tables have row-level security — users can only access their own data.
+
+## Setup
+
+1. Create a Supabase project
+2. Run `supabase/schema.sql` in the SQL Editor
+3. Run `supabase/seed.sql`, replacing the hardcoded `user_id` with your own
+4. Copy your Supabase URL and anon key into `.env`:
+   ```
+   VITE_SUPABASE_URL=...
+   VITE_SUPABASE_ANON_KEY=...
+   ```
+5. `npm install && npm run dev`
