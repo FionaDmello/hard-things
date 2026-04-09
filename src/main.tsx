@@ -57,9 +57,7 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
       if (session?.user) loadUserData(session.user.id)
     })
 
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setSession(session)
       if (event === 'SIGNED_IN' && session?.user) {
         loadUserData(session.user.id)

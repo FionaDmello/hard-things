@@ -18,13 +18,6 @@ export const useThemeStore = create<ThemeState>((set) => ({
   setHasSelectedTheme: (hasSelectedTheme) => set({ hasSelectedTheme }),
 }))
 
-// Default themes available on first launch
-export const DEFAULT_THEMES: { id: Theme; name: string }[] = [
-  { id: 'amber-plum', name: 'Warm Amber & Plum' },
-  { id: 'sage-terracotta', name: 'Sage & Terracotta' },
-]
-
-// All available themes
 export const ALL_THEMES: { id: Theme; name: string }[] = [
   { id: 'amber-plum', name: 'Warm Amber & Plum' },
   { id: 'sage-terracotta', name: 'Sage & Terracotta' },

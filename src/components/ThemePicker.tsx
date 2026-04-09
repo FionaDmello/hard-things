@@ -1,4 +1,4 @@
-import { useThemeStore, DEFAULT_THEMES, ALL_THEMES } from '../stores'
+import { useThemeStore, ALL_THEMES } from '../stores'
 import { supabase } from '../lib/supabase'
 import { useAuthStore } from '../stores'
 import type { Theme } from '../types/database'
@@ -10,7 +10,7 @@ interface ThemePickerProps {
 export function ThemePicker({ isFirstLaunch = false }: ThemePickerProps) {
   const { theme: currentTheme, setTheme } = useThemeStore()
   const user = useAuthStore((state) => state.user)
-  const themes = isFirstLaunch ? DEFAULT_THEMES : ALL_THEMES
+  const themes = ALL_THEMES
 
   async function handleThemeSelect(themeId: Theme) {
     setTheme(themeId)
