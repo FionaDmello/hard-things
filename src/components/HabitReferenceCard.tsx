@@ -48,16 +48,6 @@ export function HabitReferenceCard({ habit }: Props) {
     discernmentContent = <p>{habit.discernment_question}</p>
   }
 
-  // Group habit_versions by sub_habit for the build section
-  const versionsBySubHabit = habit.habit_versions.reduce<Record<string, typeof habit.habit_versions>>(
-    (acc, v) => {
-      if (!acc[v.sub_habit]) acc[v.sub_habit] = []
-      acc[v.sub_habit].push(v)
-      return acc
-    },
-    {}
-  )
-
   return (
     <div className="mt-3">
       <button
@@ -101,9 +91,9 @@ export function HabitReferenceCard({ habit }: Props) {
           )}
 
           {/* Versions — Section build */}
-          {habit.section === 'build' && Object.keys(versionsBySubHabit).length > 0 && (
+          {habit.section === 'build' && Object.keys(habit.habit_versions).length > 0 && (
             <CollapsibleSection title="The three versions">
-              {Object.entries(versionsBySubHabit).map(([subHabit, versions]) => (
+              {Object.entries(habit.habit_versions).map(([subHabit, versions]) => (
                 <div key={subHabit} className="mb-3">
                   <p className="font-medium capitalize mb-1">{subHabit}</p>
                   <ul className="space-y-1 ml-2">

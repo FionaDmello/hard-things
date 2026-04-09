@@ -215,3 +215,91 @@ create index idx_observations_habit_id on public.observations(habit_id);
 create index idx_collapses_user_id on public.collapses(user_id);
 create index idx_urge_logs_user_id on public.urge_logs(user_id);
 create index idx_weekly_reviews_user_id on public.weekly_reviews(user_id);
+
+-- ─── RPC Functions ────────────────────────────────────────────────────────────
+
+create or replace function get_user_habits()
+returns json
+language sql
+security definer
+set search_path = public
+stable
+as $$
+  select coalesce(
+    (
+      select json_agg(h)
+      from (
+        select
+          hab.id,
+          hab.user_id,
+          hab.section,
+          hab.name,
+          hab.discernment_question,
+          hab.distress_tolerance,
+          hab.current_phase,
+          hab.created_at,
+          -- drivers as an ordered array
+          coalesce(
+            (
+              select json_agg(
+                json_build_object(
+                  'id',          d.id,
+                  'habit_id',    d.habit_id,
+                  'key',         d.key,
+                  'label',       d.label,
+                  'description', d.description,
+                  'replacement', d.replacement
+                )
+              )
+              from habit_drivers d
+              where d.habit_id = hab.id
+            ),
+            '[]'::json
+          ) as habit_drivers,
+          -- versions grouped by sub_habit: { yoga: [...], gym: [...] }
+          coalesce(
+            (
+              select json_object_agg(sub_habit, versions)
+              from (
+                select
+                  v.sub_habit,
+                  json_agg(
+                    json_build_object(
+                      'id',          v.id,
+                      'habit_id',    v.habit_id,
+                      'sub_habit',   v.sub_habit,
+                      'level',       v.level,
+                      'description', v.description
+                    )
+                    order by case v.level
+                      when 'full'           then 1
+                      when 'minimum'        then 2
+                      when 'non_negotiable' then 3
+                    end
+                  ) as versions
+                from habit_versions v
+                where v.habit_id = hab.id
+                group by v.sub_habit
+              ) grouped
+            ),
+            '{}'::json
+          ) as habit_versions,
+          -- schedule as a day-keyed map: { "1": "yoga", "2": "gym", ... }
+          coalesce(
+            (
+              select json_object_agg(s.day_of_week::text, s.sub_habit)
+              from habit_schedule s
+              where s.habit_id = hab.id
+            ),
+            '{}'::json
+          ) as habit_schedule
+        from habits hab
+        where hab.user_id = auth.uid()
+        order by hab.created_at
+      ) h
+    ),
+    '[]'::json
+  )
+$$;
+
+grant execute on function get_user_habits() to authenticated;

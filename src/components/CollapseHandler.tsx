@@ -85,11 +85,10 @@ function BuildCollapseFlow({ habit, userId, onClose }: { habit: Habit; userId: s
 
   // Determine today's sub-habit for non-negotiable version
   const today = new Date().getDay()
-  const scheduleEntry = habit.habit_schedule.find((s) => s.day_of_week === today)
-  const subHabit = scheduleEntry?.sub_habit ?? habit.habit_schedule[0]?.sub_habit ?? 'yoga'
+  const subHabit = habit.habit_schedule[String(today)] ?? Object.values(habit.habit_schedule)[0] ?? 'yoga'
   const nonNegotiable =
-    habit.habit_versions.find((v) => v.sub_habit === subHabit && v.level === 'non_negotiable')?.description ??
-    habit.habit_versions.find((v) => v.level === 'non_negotiable')?.description
+    habit.habit_versions[subHabit]?.find((v) => v.level === 'non_negotiable')?.description ??
+    Object.values(habit.habit_versions).flat().find((v) => v.level === 'non_negotiable')?.description
 
   const { mutate: save, isPending } = useMutation({
     mutationFn: async (confirmed: boolean) => {

@@ -43,9 +43,7 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
       })
 
     supabase
-      .from('habits')
-      .select('*, habit_drivers(*), habit_versions(*), habit_schedule(*)')
-      .eq('user_id', userId)
+      .rpc('get_user_habits')
       .then(({ data }) => {
         if (data) setHabits(data as Habit[])
       })

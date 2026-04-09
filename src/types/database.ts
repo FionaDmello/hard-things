@@ -187,10 +187,11 @@ export type HabitDriver = Database['public']['Tables']['habit_drivers']['Row']
 export type HabitVersion = Database['public']['Tables']['habit_versions']['Row']
 export type HabitSchedule = Database['public']['Tables']['habit_schedule']['Row']
 
-// Full habit with nested relations — returned by:
-// supabase.from('habits').select('*, habit_drivers(*), habit_versions(*), habit_schedule(*)')
+// Full habit with nested relations — returned by supabase.rpc('get_user_habits')
+// habit_versions is grouped by sub_habit: { yoga: [...], gym: [...] }
+// habit_schedule is a day-keyed map: { "1": "yoga", "2": "gym", ... }
 export type Habit = Database['public']['Tables']['habits']['Row'] & {
   habit_drivers: HabitDriver[]
-  habit_versions: HabitVersion[]
-  habit_schedule: HabitSchedule[]
+  habit_versions: Record<string, HabitVersion[]>
+  habit_schedule: Record<string, string>
 }
