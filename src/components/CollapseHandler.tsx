@@ -2,9 +2,7 @@ import { useState } from 'react'
 import { useMutation } from '@tanstack/react-query'
 import { supabase } from '../lib/supabase'
 import { useAuthStore, useHabitStore } from '../stores'
-import type { Database } from '../types/database'
-
-type Habit = Database['public']['Tables']['habits']['Row']
+import type { Habit } from '../types/database'
 
 interface Props {
   // If provided, skip the habit picker and go straight to the flow
@@ -85,12 +83,13 @@ function BuildCollapseFlow({ habit, userId, onClose }: { habit: Habit; userId: s
   const [whatGaveWay, setWhatGaveWay] = useState('')
   const [returnConfirmed, setReturnConfirmed] = useState<boolean | null>(null)
 
-  const versions = habit.versions as Record<string, Record<string, string>>
   // Determine today's sub-habit for non-negotiable version
   const today = new Date().getDay()
-  const schedule = habit.schedule as Record<string, string> | null
-  const subHabit = schedule?.[String(today)] ?? 'yoga'
-  const nonNegotiable = versions[subHabit]?.non_negotiable ?? versions[Object.keys(versions)[0]]?.non_negotiable
+  const scheduleEntry = habit.habit_schedule.find((s) => s.day_of_week === today)
+  const subHabit = scheduleEntry?.sub_habit ?? habit.habit_schedule[0]?.sub_habit ?? 'yoga'
+  const nonNegotiable =
+    habit.habit_versions.find((v) => v.sub_habit === subHabit && v.level === 'non_negotiable')?.description ??
+    habit.habit_versions.find((v) => v.level === 'non_negotiable')?.description
 
   const { mutate: save, isPending } = useMutation({
     mutationFn: async (confirmed: boolean) => {
@@ -259,17 +258,17 @@ function BreakCollapseFlow({ habit, userId, onClose }: { habit: Habit; userId: s
         <h1 className="text-2xl font-semibold text-primary">{habit.name}</h1>
         <p className="text-mid font-medium">Which job was it doing?</p>
         <div className="flex flex-wrap gap-2">
-          {habit.drivers.map((driver) => (
+          {habit.habit_drivers.map((driver) => (
             <button
-              key={driver}
-              onClick={() => setJobIfBreak(driver)}
+              key={driver.key}
+              onClick={() => setJobIfBreak(driver.key)}
               className={`px-3 py-1.5 rounded-lg border text-sm transition-all ${
-                jobIfBreak === driver
+                jobIfBreak === driver.key
                   ? 'border-accent bg-accent-light font-medium text-primary'
                   : 'border-mid/20 text-primary hover:border-mid/40'
               }`}
             >
-              {driver}
+              {driver.label}
             </button>
           ))}
         </div>

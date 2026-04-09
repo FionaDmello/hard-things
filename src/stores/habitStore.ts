@@ -1,7 +1,5 @@
 import { create } from 'zustand'
-import type { Database } from '../types/database'
-
-type Habit = Database['public']['Tables']['habits']['Row']
+import type { Habit } from '../types/database'
 
 interface HabitState {
   habits: Habit[]

@@ -1,6 +1,3 @@
-// Database types - these will be generated from Supabase schema
-// For now, we define them manually based on the data model
-
 export type Json =
   | string
   | number
@@ -34,16 +31,49 @@ export interface Database {
           user_id: string
           section: HabitSection
           name: string
-          versions: Json
-          drivers: string[]
           discernment_question: string
-          replacements: Json
+          distress_tolerance: string
           current_phase: HabitPhase | null
-          schedule: Json | null
           created_at: string
         }
         Insert: Omit<InsertOf<Database['public']['Tables']['habits']['Row']>, 'id' | 'created_at'>
         Update: Partial<Database['public']['Tables']['habits']['Insert']>
+        Relationships: []
+      }
+      habit_drivers: {
+        Row: {
+          id: string
+          habit_id: string
+          key: string
+          label: string
+          description: string
+          replacement: string
+        }
+        Insert: Omit<InsertOf<Database['public']['Tables']['habit_drivers']['Row']>, 'id'>
+        Update: Partial<Database['public']['Tables']['habit_drivers']['Insert']>
+        Relationships: []
+      }
+      habit_versions: {
+        Row: {
+          id: string
+          habit_id: string
+          sub_habit: string
+          level: 'full' | 'minimum' | 'non_negotiable'
+          description: string
+        }
+        Insert: Omit<InsertOf<Database['public']['Tables']['habit_versions']['Row']>, 'id'>
+        Update: Partial<Database['public']['Tables']['habit_versions']['Insert']>
+        Relationships: []
+      }
+      habit_schedule: {
+        Row: {
+          id: string
+          habit_id: string
+          day_of_week: number
+          sub_habit: string
+        }
+        Insert: Omit<InsertOf<Database['public']['Tables']['habit_schedule']['Row']>, 'id'>
+        Update: Partial<Database['public']['Tables']['habit_schedule']['Insert']>
         Relationships: []
       }
       checkins: {
@@ -149,4 +179,18 @@ export interface Database {
       }
     }
   }
+}
+
+// ─── Convenience types ────────────────────────────────────────────────────────
+
+export type HabitDriver = Database['public']['Tables']['habit_drivers']['Row']
+export type HabitVersion = Database['public']['Tables']['habit_versions']['Row']
+export type HabitSchedule = Database['public']['Tables']['habit_schedule']['Row']
+
+// Full habit with nested relations — returned by:
+// supabase.from('habits').select('*, habit_drivers(*), habit_versions(*), habit_schedule(*)')
+export type Habit = Database['public']['Tables']['habits']['Row'] & {
+  habit_drivers: HabitDriver[]
+  habit_versions: HabitVersion[]
+  habit_schedule: HabitSchedule[]
 }

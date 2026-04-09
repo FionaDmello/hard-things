@@ -2,9 +2,8 @@ import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '../lib/supabase'
 import { useAuthStore } from '../stores'
-import type { Database } from '../types/database'
+import type { Habit, Database } from '../types/database'
 
-type Habit = Database['public']['Tables']['habits']['Row']
 type Checkin = Database['public']['Tables']['checkins']['Row']
 
 interface Props {
@@ -188,17 +187,17 @@ function CheckInForm({ habit, userId, today, onSaved, onCancel }: FormProps) {
           <div>
             <p className="text-sm font-medium text-primary mb-2">Which job was it doing?</p>
             <div className="flex flex-wrap gap-2">
-              {habit.drivers.map((driver) => (
+              {habit.habit_drivers.map((driver) => (
                 <button
-                  key={driver}
-                  onClick={() => setJobIfSlipped(driver)}
+                  key={driver.key}
+                  onClick={() => setJobIfSlipped(driver.key)}
                   className={`px-3 py-1.5 rounded-lg border text-sm transition-all ${
-                    jobIfSlipped === driver
+                    jobIfSlipped === driver.key
                       ? 'border-accent bg-light font-medium'
                       : 'border-mid/20 hover:border-mid/40'
                   }`}
                 >
-                  {driver}
+                  {driver.label}
                 </button>
               ))}
             </div>

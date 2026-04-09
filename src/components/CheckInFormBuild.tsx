@@ -3,9 +3,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '../lib/supabase'
 import { useAuthStore } from '../stores'
 import { getTodayExerciseType } from '../stores'
-import type { Database, PracticeLevel } from '../types/database'
+import type { Habit, Database, PracticeLevel } from '../types/database'
 
-type Habit = Database['public']['Tables']['habits']['Row']
 type Checkin = Database['public']['Tables']['checkins']['Row']
 
 interface Props {

@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { routeTree } from './routeTree.gen'
 import { supabase } from './lib/supabase'
 import { useAuthStore, useThemeStore, useHabitStore } from './stores'
+import type { Habit } from './types/database'
 import './index.css'
 
 const queryClient = new QueryClient({
@@ -43,10 +44,10 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
 
     supabase
       .from('habits')
-      .select('*')
+      .select('*, habit_drivers(*), habit_versions(*), habit_schedule(*)')
       .eq('user_id', userId)
       .then(({ data }) => {
-        if (data) setHabits(data)
+        if (data) setHabits(data as Habit[])
       })
   }
 
