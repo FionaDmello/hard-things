@@ -2,7 +2,6 @@ import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '../lib/supabase'
 import { useAuthStore } from '../stores'
-import { getTodayExerciseType } from '../stores'
 import type { BuildHabit, Database, PracticeLevel } from '../types/database'
 
 type Checkin = Database['public']['Tables']['checkins']['Row']
@@ -31,7 +30,7 @@ function todayISO() {
 
 function getDiscernmentQuestion(habit: BuildHabit): string {
   if (habit.sub_habits) {
-    const todaySubHabit = getTodayExerciseType()
+    const todaySubHabit = habit.habit_schedule[String(new Date().getDay())]
     return habit.sub_habits[todaySubHabit]?.discernment_question ?? ''
   }
   return habit.discernment_question

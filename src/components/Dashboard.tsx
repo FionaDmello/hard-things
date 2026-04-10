@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { Link } from '@tanstack/react-router'
-import { getTodayExerciseType, isLightestGymDay } from '../stores'
 import { NightBeforePrompt } from './NightBeforePrompt'
 import { WeeklyReview } from './WeeklyReview'
 import { CollapseHandler } from './CollapseHandler'
@@ -13,8 +12,6 @@ export function Dashboard() {
     month: 'long',
     day: 'numeric',
   })
-  const exerciseType = getTodayExerciseType()
-  const isLightDay = isLightestGymDay()
 
   return (
     <div className="p-6 max-w-2xl mx-auto">
@@ -24,20 +21,6 @@ export function Dashboard() {
       </header>
 
       <NightBeforePrompt />
-
-      {/* Today's scheduled habit */}
-      <section className="mb-8">
-        <div className="bg-accent-light p-4 rounded-lg border border-mid/20">
-          <p className="text-sm text-mid mb-1">Today</p>
-          <p className="font-medium text-primary">
-            {exerciseType === 'yoga' && 'Yoga'}
-            {exerciseType === 'gym' && (
-              <>Gym{isLightDay && <span className="text-mid"> — lightest session</span>}</>
-            )}
-            {exerciseType === 'rest' && 'Yoga / Rest'}
-          </p>
-        </div>
-      </section>
 
       <WeeklyReview />
 

@@ -41,7 +41,6 @@ export function NightBeforePrompt() {
 
   const tomorrow = TOMORROW[new Date().getDay()]
   const isGym = tomorrow === 'gym'
-  const isLightestDay = new Date().getDay() === 2 // Wednesday → lightest gym session tomorrow
 
   function handleConfirm() {
     dismiss()
@@ -59,7 +58,7 @@ export function NightBeforePrompt() {
       {isGym ? (
         <>
           <p className="font-medium text-primary mb-1">
-            Gym tomorrow{isLightestDay && <span className="text-mid font-normal"> — lightest session</span>}.
+            Gym tomorrow.
           </p>
           <p className="text-sm text-primary mb-4">Day bag packed? Both bags at the door?</p>
         </>
