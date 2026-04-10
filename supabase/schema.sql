@@ -20,6 +20,8 @@ create table public.habits (
   current_phase text check (current_phase in ('phase_1_observe', 'phase_2_replace', 'phase_3_quit')),
   created_at timestamptz not null default now()
 );
+-- Note: discernment_question is used by break habits and simple build habits (no sub-habits).
+-- Build habits with sub-habits store discernment_question per sub-habit in habit_versions.
 
 -- Drivers / jobs per habit (Section A: jobs the habit is doing; Section B: not used)
 create table public.habit_drivers (
@@ -31,13 +33,17 @@ create table public.habit_drivers (
   replacement text not null default ''
 );
 
--- Practice versions per habit (Section B: full / minimum / non-negotiable per sub-habit)
+-- Practice levels per build habit.
+-- name is null for simple build habits (no sub-habits); populated for sub-habit build habits.
+-- discernment_question is per sub-habit for habits with sub-habits; leave empty for simple habits.
 create table public.habit_versions (
   id uuid primary key default uuid_generate_v4(),
   habit_id uuid references public.habits(id) on delete cascade not null,
-  sub_habit text not null,
-  level text not null check (level in ('full', 'minimum', 'non_negotiable')),
-  description text not null
+  sub_habit text,
+  discernment_question text not null default '',
+  full_description text not null default '',
+  minimum_description text not null default '',
+  non_negotiable text not null default ''
 );
 
 -- Weekly schedule per habit (Section B: day-of-week to sub-habit mapping)
@@ -206,6 +212,7 @@ create policy "Users can update their own settings" on public.settings for updat
 create index idx_habits_user_id on public.habits(user_id);
 create index idx_habit_drivers_habit_id on public.habit_drivers(habit_id);
 create index idx_habit_versions_habit_id on public.habit_versions(habit_id);
+create index idx_habit_versions_sub_habit on public.habit_versions(habit_id, sub_habit) where sub_habit is not null;
 create index idx_habit_schedule_habit_id on public.habit_schedule(habit_id);
 create index idx_checkins_user_id on public.checkins(user_id);
 create index idx_checkins_habit_id on public.checkins(habit_id);
@@ -218,7 +225,7 @@ create index idx_weekly_reviews_user_id on public.weekly_reviews(user_id);
 
 -- ─── RPC Functions ────────────────────────────────────────────────────────────
 
-create or replace function get_user_habits()
+create or replace function get_break_habits()
 returns json
 language sql
 security definer
@@ -238,7 +245,6 @@ as $$
           hab.distress_tolerance,
           hab.current_phase,
           hab.created_at,
-          -- drivers as an ordered array
           coalesce(
             (
               select json_agg(
@@ -255,35 +261,70 @@ as $$
               where d.habit_id = hab.id
             ),
             '[]'::json
-          ) as habit_drivers,
-          -- versions grouped by sub_habit: { yoga: [...], gym: [...] }
-          coalesce(
-            (
-              select json_object_agg(sub_habit, versions)
-              from (
-                select
-                  v.sub_habit,
-                  json_agg(
-                    json_build_object(
-                      'id',          v.id,
-                      'habit_id',    v.habit_id,
-                      'sub_habit',   v.sub_habit,
-                      'level',       v.level,
-                      'description', v.description
-                    )
-                    order by case v.level
-                      when 'full'           then 1
-                      when 'minimum'        then 2
-                      when 'non_negotiable' then 3
-                    end
-                  ) as versions
-                from habit_versions v
-                where v.habit_id = hab.id
-                group by v.sub_habit
-              ) grouped
-            ),
-            '{}'::json
-          ) as habit_versions,
+          ) as habit_drivers
+        from habits hab
+        where hab.user_id = auth.uid()
+          and hab.section = 'break'
+        order by hab.created_at
+      ) h
+    ),
+    '[]'::json
+  )
+$$;
+
+create or replace function get_build_habits()
+returns json
+language sql
+security definer
+set search_path = public
+stable
+as $$
+  select coalesce(
+    (
+      select json_agg(h)
+      from (
+        select
+          hab.id,
+          hab.user_id,
+          hab.section,
+          hab.name,
+          hab.discernment_question,
+          hab.distress_tolerance,
+          hab.current_phase,
+          hab.created_at,
+          -- practice: populated for simple habits (sub_habit is null), null for sub-habit habits
+          case
+            when exists (select 1 from habit_versions v where v.habit_id = hab.id and v.sub_habit is null)
+            then (
+              select json_build_object(
+                'full_description',    v.full_description,
+                'minimum_description', v.minimum_description,
+                'non_negotiable',      v.non_negotiable
+              )
+              from habit_versions v
+              where v.habit_id = hab.id and v.sub_habit is null
+              limit 1
+            )
+            else null
+          end as practice,
+          -- sub_habits: populated for sub-habit habits, null for simple habits
+          case
+            when exists (select 1 from habit_versions v where v.habit_id = hab.id and v.sub_habit is not null)
+            then (
+              select json_object_agg(
+                v.sub_habit,
+                json_build_object(
+                  'discernment_question', v.discernment_question,
+                  'full_description',     v.full_description,
+                  'minimum_description',  v.minimum_description,
+                  'non_negotiable',       v.non_negotiable
+                )
+              )
+              from habit_versions v
+              where v.habit_id = hab.id and v.sub_habit is not null
+            )
+            else null
+          end as sub_habits,
           -- schedule as a day-keyed map: { "1": "yoga", "2": "gym", ... }
           coalesce(
             (
@@ -295,6 +336,7 @@ as $$
           ) as habit_schedule
         from habits hab
         where hab.user_id = auth.uid()
+          and hab.section = 'build'
         order by hab.created_at
       ) h
     ),
@@ -302,4 +344,5 @@ as $$
   )
 $$;
 
-grant execute on function get_user_habits() to authenticated;
+grant execute on function get_break_habits() to authenticated;
+grant execute on function get_build_habits() to authenticated;

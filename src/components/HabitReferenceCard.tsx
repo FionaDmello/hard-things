@@ -1,8 +1,8 @@
 import { useState } from 'react'
-import type { Habit } from '../types/database'
+import type { AnyHabit } from '../types/database'
 
 interface Props {
-  habit: Habit
+  habit: AnyHabit
 }
 
 function CollapsibleSection({ title, children }: { title: string; children: React.ReactNode }) {
@@ -25,28 +25,20 @@ function CollapsibleSection({ title, children }: { title: string; children: Reac
   )
 }
 
+function PracticeLevelsSection({ practice }: { practice: { full_description: string; minimum_description: string; non_negotiable: string } }) {
+  return (
+    <ul className="space-y-1">
+      <li><span className="font-medium">Full:</span> {practice.full_description}</li>
+      <li><span className="font-medium">Minimum:</span> {practice.minimum_description}</li>
+      <li><span className="font-medium">Non-negotiable:</span> {practice.non_negotiable}</li>
+    </ul>
+  )
+}
+
 // ─── Component ───────────────────────────────────────────────────────────────
 
 export function HabitReferenceCard({ habit }: Props) {
   const [open, setOpen] = useState(false)
-
-  // B1 discernment_question may be stored as JSON {"yoga":"...","gym":"..."}
-  let discernmentContent: React.ReactNode
-  try {
-    const parsed = JSON.parse(habit.discernment_question)
-    if (parsed.yoga && parsed.gym) {
-      discernmentContent = (
-        <div className="space-y-2">
-          <p><span className="font-medium">Yoga days:</span> {parsed.yoga}</p>
-          <p><span className="font-medium">Gym days:</span> {parsed.gym}</p>
-        </div>
-      )
-    } else {
-      discernmentContent = <p>{habit.discernment_question}</p>
-    }
-  } catch {
-    discernmentContent = <p>{habit.discernment_question}</p>
-  }
 
   return (
     <div className="mt-3">
@@ -60,8 +52,8 @@ export function HabitReferenceCard({ habit }: Props) {
       {open && (
         <div className="mt-3 space-y-2">
 
-          {/* Current phase — Section break only */}
-          {habit.current_phase && (
+          {/* Current phase — break habits only */}
+          {habit.section === 'break' && habit.current_phase && (
             <CollapsibleSection title="Current phase">
               <p className="capitalize">{habit.current_phase.replace(/_/g, ' ')}</p>
               {habit.current_phase === 'phase_1_observe' && (
@@ -76,9 +68,9 @@ export function HabitReferenceCard({ habit }: Props) {
             </CollapsibleSection>
           )}
 
-          {/* Drivers / jobs */}
-          {habit.habit_drivers.length > 0 && (
-            <CollapsibleSection title={habit.section === 'build' ? 'Why this habit' : 'The jobs this habit is doing'}>
+          {/* Drivers — break habits */}
+          {habit.section === 'break' && habit.habit_drivers.length > 0 && (
+            <CollapsibleSection title="The jobs this habit is doing">
               <ul className="space-y-2">
                 {habit.habit_drivers.map((driver) => (
                   <li key={driver.key}>
@@ -90,26 +82,7 @@ export function HabitReferenceCard({ habit }: Props) {
             </CollapsibleSection>
           )}
 
-          {/* Versions — Section build */}
-          {habit.section === 'build' && Object.keys(habit.habit_versions).length > 0 && (
-            <CollapsibleSection title="The three versions">
-              {Object.entries(habit.habit_versions).map(([subHabit, versions]) => (
-                <div key={subHabit} className="mb-3">
-                  <p className="font-medium capitalize mb-1">{subHabit}</p>
-                  <ul className="space-y-1 ml-2">
-                    {versions.map((v) => (
-                      <li key={v.level}>
-                        <span className="font-medium capitalize">{v.level.replace(/_/g, ' ')}:</span>{' '}
-                        {v.description}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
-            </CollapsibleSection>
-          )}
-
-          {/* Replacements — Section break */}
+          {/* Replacements — break habits */}
           {habit.section === 'break' && habit.habit_drivers.some((d) => d.replacement) && (
             <CollapsibleSection title="Replacement strategies">
               <ul className="space-y-2">
@@ -123,17 +96,50 @@ export function HabitReferenceCard({ habit }: Props) {
             </CollapsibleSection>
           )}
 
-          {/* Distress tolerance layer */}
+          {/* Practice levels — simple build habit */}
+          {habit.section === 'build' && habit.practice && (
+            <CollapsibleSection title="The three versions">
+              <PracticeLevelsSection practice={habit.practice} />
+            </CollapsibleSection>
+          )}
+
+          {/* Practice levels — sub-habit build habit */}
+          {habit.section === 'build' && habit.sub_habits && (
+            <CollapsibleSection title="The three versions">
+              {Object.entries(habit.sub_habits).map(([subHabit, data]) => (
+                <div key={subHabit} className="mb-3">
+                  <p className="font-medium capitalize mb-1">{subHabit}</p>
+                  <div className="ml-2">
+                    <PracticeLevelsSection practice={data} />
+                  </div>
+                </div>
+              ))}
+            </CollapsibleSection>
+          )}
+
+          {/* Distress tolerance */}
           {habit.distress_tolerance && (
             <CollapsibleSection title="Distress tolerance layer">
               <p>{habit.distress_tolerance}</p>
             </CollapsibleSection>
           )}
 
-          {/* Discernment question */}
+          {/* Discernment question — break habits and simple build habits */}
           {habit.discernment_question && (
             <CollapsibleSection title="Discernment question">
-              {discernmentContent}
+              <p>{habit.discernment_question}</p>
+            </CollapsibleSection>
+          )}
+
+          {/* Discernment questions — sub-habit build habits */}
+          {habit.section === 'build' && habit.sub_habits && (
+            <CollapsibleSection title="Discernment questions">
+              {Object.entries(habit.sub_habits).map(([subHabit, data]) => (
+                <div key={subHabit} className="mb-2">
+                  <p className="font-medium capitalize">{subHabit}</p>
+                  <p className="text-mid">{data.discernment_question}</p>
+                </div>
+              ))}
             </CollapsibleSection>
           )}
 

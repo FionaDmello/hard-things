@@ -1,12 +1,11 @@
 import { useState } from 'react'
-import { useMutation } from '@tanstack/react-query'
+import { useQuery, useMutation } from '@tanstack/react-query'
 import { supabase } from '../lib/supabase'
-import { useAuthStore, useHabitStore } from '../stores'
-import type { Habit } from '../types/database'
+import { useAuthStore } from '../stores'
+import type { AnyHabit, BreakHabit, BuildHabit } from '../types/database'
 
 interface Props {
-  // If provided, skip the habit picker and go straight to the flow
-  habit?: Habit
+  habit?: AnyHabit
   onClose: () => void
 }
 
@@ -18,9 +17,30 @@ const WHAT_GAVE_WAY_OPTIONS = [
 ]
 
 export function CollapseHandler({ habit: initialHabit, onClose }: Props) {
-  const [selectedHabit, setSelectedHabit] = useState<Habit | null>(initialHabit ?? null)
-  const habits = useHabitStore((state) => state.habits)
+  const [selectedHabit, setSelectedHabit] = useState<AnyHabit | null>(initialHabit ?? null)
+
+  const { data: breakHabits = [] } = useQuery({
+    queryKey: ['habits', 'break'],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc('get_break_habits')
+      if (error) throw error
+      return (data ?? []) as BreakHabit[]
+    },
+    enabled: !initialHabit,
+  })
+
+  const { data: buildHabits = [] } = useQuery({
+    queryKey: ['habits', 'build'],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc('get_build_habits')
+      if (error) throw error
+      return (data ?? []) as BuildHabit[]
+    },
+    enabled: !initialHabit,
+  })
+
   const user = useAuthStore((state) => state.user)
+  const allHabits: AnyHabit[] = [...breakHabits, ...buildHabits]
 
   return (
     <div className="fixed inset-0 bg-light z-50 overflow-y-auto">
@@ -33,7 +53,7 @@ export function CollapseHandler({ habit: initialHabit, onClose }: Props) {
         </button>
 
         {!selectedHabit ? (
-          <HabitPicker habits={habits} onSelect={setSelectedHabit} />
+          <HabitPicker habits={allHabits} onSelect={setSelectedHabit} />
         ) : selectedHabit.section === 'build' ? (
           <BuildCollapseFlow
             habit={selectedHabit}
@@ -54,7 +74,7 @@ export function CollapseHandler({ habit: initialHabit, onClose }: Props) {
 
 // ─── Habit Picker ─────────────────────────────────────────────────────────────
 
-function HabitPicker({ habits, onSelect }: { habits: Habit[]; onSelect: (h: Habit) => void }) {
+function HabitPicker({ habits, onSelect }: { habits: AnyHabit[]; onSelect: (h: AnyHabit) => void }) {
   return (
     <div className="space-y-4">
       <h1 className="text-2xl font-semibold text-primary">Collapse handler</h1>
@@ -77,18 +97,17 @@ function HabitPicker({ habits, onSelect }: { habits: Habit[]; onSelect: (h: Habi
 
 // ─── Build Collapse Flow ──────────────────────────────────────────────────────
 
-function BuildCollapseFlow({ habit, userId, onClose }: { habit: Habit; userId: string; onClose: () => void }) {
+function BuildCollapseFlow({ habit, userId, onClose }: { habit: BuildHabit; userId: string; onClose: () => void }) {
   const [step, setStep] = useState(1)
   const [whatHappened, setWhatHappened] = useState('')
   const [whatGaveWay, setWhatGaveWay] = useState('')
   const [returnConfirmed, setReturnConfirmed] = useState<boolean | null>(null)
 
-  // Determine today's sub-habit for non-negotiable version
   const today = new Date().getDay()
-  const subHabit = habit.habit_schedule[String(today)] ?? Object.values(habit.habit_schedule)[0] ?? 'yoga'
-  const nonNegotiable =
-    habit.habit_versions[subHabit]?.find((v) => v.level === 'non_negotiable')?.description ??
-    Object.values(habit.habit_versions).flat().find((v) => v.level === 'non_negotiable')?.description
+  const subHabit = habit.habit_schedule[String(today)] ?? Object.values(habit.habit_schedule)[0] ?? null
+  const nonNegotiable = subHabit
+    ? habit.sub_habits?.[subHabit]?.non_negotiable
+    : habit.practice?.non_negotiable
 
   const { mutate: save, isPending } = useMutation({
     mutationFn: async (confirmed: boolean) => {
@@ -103,7 +122,6 @@ function BuildCollapseFlow({ habit, userId, onClose }: { habit: Habit; userId: s
         return_confirmed: confirmed,
       })
 
-      // If returning at minimum, upsert today's check-in as non-negotiable
       if (confirmed) {
         await supabase.from('checkins').upsert({
           user_id: userId,
@@ -207,7 +225,7 @@ function BuildCollapseFlow({ habit, userId, onClose }: { habit: Habit; userId: s
 
 // ─── Break Collapse Flow ──────────────────────────────────────────────────────
 
-function BreakCollapseFlow({ habit, userId, onClose }: { habit: Habit; userId: string; onClose: () => void }) {
+function BreakCollapseFlow({ habit, userId, onClose }: { habit: BreakHabit; userId: string; onClose: () => void }) {
   const [step, setStep] = useState(1)
   const [whatHappened, setWhatHappened] = useState('')
   const [jobIfBreak, setJobIfBreak] = useState('')

@@ -2,12 +2,12 @@ import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '../lib/supabase'
 import { useAuthStore } from '../stores'
-import type { Habit, Database } from '../types/database'
+import type { BreakHabit, Database } from '../types/database'
 
 type Checkin = Database['public']['Tables']['checkins']['Row']
 
 interface Props {
-  habit: Habit
+  habit: BreakHabit
 }
 
 function todayISO() {
@@ -90,7 +90,7 @@ export function CheckInFormBreak({ habit }: Props) {
 // ─── Form ────────────────────────────────────────────────────────────────────
 
 interface FormProps {
-  habit: Habit
+  habit: BreakHabit
   userId: string
   today: string
   onSaved: () => void

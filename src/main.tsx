@@ -4,8 +4,7 @@ import { RouterProvider, createRouter } from '@tanstack/react-router'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { routeTree } from './routeTree.gen'
 import { supabase } from './lib/supabase'
-import { useAuthStore, useThemeStore, useHabitStore } from './stores'
-import type { Habit } from './types/database'
+import { useAuthStore, useThemeStore } from './stores'
 import './index.css'
 
 const queryClient = new QueryClient({
@@ -27,7 +26,6 @@ declare module '@tanstack/react-router' {
 function AuthProvider({ children }: { children: React.ReactNode }) {
   const { setSession, setIsLoading } = useAuthStore()
   const { setTheme, setHasSelectedTheme } = useThemeStore()
-  const { setHabits } = useHabitStore()
 
   function loadUserData(userId: string) {
     supabase
@@ -40,12 +38,6 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
           setTheme(data.selected_theme)
           setHasSelectedTheme(true)
         }
-      })
-
-    supabase
-      .rpc('get_user_habits')
-      .then(({ data }) => {
-        if (data) setHabits(data as Habit[])
       })
   }
 

@@ -23,15 +23,17 @@ VALUES
     'Is this a fear-based limit or a real one?',
     'Find the entry point only. Not the task — the first physical action. Write one line. Open one file. Set a twenty-five minute timer and stop when it ends.',
     'phase_1_observe'
-  ),
+  );
+
+-- Exercise has sub-habits, so discernment_question lives in habit_versions instead
+INSERT INTO public.habits (id, user_id, section, name, distress_tolerance)
+VALUES
   (
     '33333333-3333-3333-3333-333333333333',
     'fcf1eb17-7d7d-4394-9c1a-09096bfbb0e7',
     'build',
     'Exercise',
-    '{"yoga":"Has this resistance ever dissolved once I started? Yes — so what is actually stopping me right now?","gym":"The bag is already packed. The walk is the warm-up. What is actually stopping me right now?"}',
-    'The non-negotiable exists for this moment. It is the floor, not the ceiling. Clothes on, mat out, or walk to the door — begin there.',
-    NULL
+    'The non-negotiable exists for this moment. It is the floor, not the ceiling. Clothes on, mat out, or walk to the door — begin there.'
   );
 
 -- ─── A1 Smoking — drivers ────────────────────────────────────────────────────
@@ -107,13 +109,23 @@ INSERT INTO public.habit_drivers (habit_id, key, label, description, replacement
 
 -- ─── B1 Exercise — versions ───────────────────────────────────────────────────
 
-INSERT INTO public.habit_versions (habit_id, sub_habit, level, description) VALUES
-  ('33333333-3333-3333-3333-333333333333', 'yoga', 'full',           '45-50 minute practice.'),
-  ('33333333-3333-3333-3333-333333333333', 'yoga', 'minimum',        '20 minutes any movement on mat.'),
-  ('33333333-3333-3333-3333-333333333333', 'yoga', 'non_negotiable', 'Clothes on, mat unrolled, five minutes lying on mat breathing.'),
-  ('33333333-3333-3333-3333-333333333333', 'gym',  'full',           '45-50 minute weight training session.'),
-  ('33333333-3333-3333-3333-333333333333', 'gym',  'minimum',        '20 minutes, two to three compound movements.'),
-  ('33333333-3333-3333-3333-333333333333', 'gym',  'non_negotiable', 'Walk to gym, step inside, ten minutes of anything, walk home.');
+INSERT INTO public.habit_versions (habit_id, sub_habit, discernment_question, full_description, minimum_description, non_negotiable) VALUES
+  (
+    '33333333-3333-3333-3333-333333333333',
+    'yoga',
+    'Has this resistance ever dissolved once I started? Yes — so what is actually stopping me right now?',
+    '45-50 minute practice.',
+    '20 minutes any movement on mat.',
+    'Clothes on, mat unrolled, five minutes lying on mat breathing.'
+  ),
+  (
+    '33333333-3333-3333-3333-333333333333',
+    'gym',
+    'The bag is already packed. The walk is the warm-up. What is actually stopping me right now?',
+    '45-50 minute weight training session.',
+    '20 minutes, two to three compound movements.',
+    'Walk to gym, step inside, ten minutes of anything, walk home.'
+  );
 
 -- ─── B1 Exercise — schedule ───────────────────────────────────────────────────
 

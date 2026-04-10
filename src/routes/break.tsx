@@ -1,14 +1,25 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { useHabitStore } from '../stores'
+import { useQuery } from '@tanstack/react-query'
+import { supabase } from '../lib/supabase'
 import { HabitReferenceCard } from '../components/HabitReferenceCard'
 import { CheckInFormBreak } from '../components/CheckInFormBreak'
+import type { BreakHabit } from '../types/database'
 
 export const Route = createFileRoute('/break')({
   component: BreakHabits,
 })
 
 function BreakHabits() {
-  const habits = useHabitStore((state) => state.habits).filter((h) => h.section === 'break')
+  const { data: habits = [], isLoading } = useQuery({
+    queryKey: ['habits', 'break'],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc('get_break_habits')
+      if (error) throw error
+      return (data ?? []) as BreakHabit[]
+    },
+  })
+
+  if (isLoading) return null
 
   return (
     <div className="p-6 max-w-2xl mx-auto">

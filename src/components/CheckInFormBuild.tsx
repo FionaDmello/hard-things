@@ -3,12 +3,12 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '../lib/supabase'
 import { useAuthStore } from '../stores'
 import { getTodayExerciseType } from '../stores'
-import type { Habit, Database, PracticeLevel } from '../types/database'
+import type { BuildHabit, Database, PracticeLevel } from '../types/database'
 
 type Checkin = Database['public']['Tables']['checkins']['Row']
 
 interface Props {
-  habit: Habit
+  habit: BuildHabit
 }
 
 const PRACTICE_LEVELS: { value: PracticeLevel; label: string; description: string }[] = [
@@ -29,14 +29,12 @@ function todayISO() {
   return new Date().toISOString().slice(0, 10)
 }
 
-function getDiscernmentQuestion(habit: Habit): string {
-  try {
-    const parsed = JSON.parse(habit.discernment_question)
-    const exerciseType = getTodayExerciseType()
-    return parsed[exerciseType] ?? habit.discernment_question
-  } catch {
-    return habit.discernment_question
+function getDiscernmentQuestion(habit: BuildHabit): string {
+  if (habit.sub_habits) {
+    const todaySubHabit = getTodayExerciseType()
+    return habit.sub_habits[todaySubHabit]?.discernment_question ?? ''
   }
+  return habit.discernment_question
 }
 
 export function CheckInFormBuild({ habit }: Props) {
@@ -106,7 +104,7 @@ export function CheckInFormBuild({ habit }: Props) {
 // ─── Form ────────────────────────────────────────────────────────────────────
 
 interface FormProps {
-  habit: Habit
+  habit: BuildHabit
   userId: string
   today: string
   onSaved: () => void

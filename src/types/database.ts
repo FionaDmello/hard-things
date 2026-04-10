@@ -57,9 +57,11 @@ export interface Database {
         Row: {
           id: string
           habit_id: string
-          sub_habit: string
-          level: 'full' | 'minimum' | 'non_negotiable'
-          description: string
+          sub_habit: string | null
+          discernment_question: string
+          full_description: string
+          minimum_description: string
+          non_negotiable: string
         }
         Insert: Omit<InsertOf<Database['public']['Tables']['habit_versions']['Row']>, 'id'>
         Update: Partial<Database['public']['Tables']['habit_versions']['Insert']>
@@ -187,11 +189,30 @@ export type HabitDriver = Database['public']['Tables']['habit_drivers']['Row']
 export type HabitVersion = Database['public']['Tables']['habit_versions']['Row']
 export type HabitSchedule = Database['public']['Tables']['habit_schedule']['Row']
 
-// Full habit with nested relations — returned by supabase.rpc('get_user_habits')
-// habit_versions is grouped by sub_habit: { yoga: [...], gym: [...] }
-// habit_schedule is a day-keyed map: { "1": "yoga", "2": "gym", ... }
-export type Habit = Database['public']['Tables']['habits']['Row'] & {
+type HabitRow = Database['public']['Tables']['habits']['Row']
+
+// Practice levels — shared shape for both simple and sub-habit build habits
+export type PracticeLevels = {
+  full_description: string
+  minimum_description: string
+  non_negotiable: string
+}
+
+// Returned by supabase.rpc('get_break_habits')
+export type BreakHabit = Omit<HabitRow, 'section'> & {
+  section: 'break'
   habit_drivers: HabitDriver[]
-  habit_versions: Record<string, HabitVersion[]>
+}
+
+// Returned by supabase.rpc('get_build_habits')
+// Simple build habit (no sub-habits): practice is populated, sub_habits is null
+// Sub-habit build habit: sub_habits is a map keyed by sub-habit name, practice is null
+export type BuildHabit = Omit<HabitRow, 'section'> & {
+  section: 'build'
+  practice: PracticeLevels | null
+  sub_habits: Record<string, PracticeLevels & { discernment_question: string }> | null
   habit_schedule: Record<string, string>
 }
+
+// Discriminated union — use habit.section === 'break'/'build' to narrow
+export type AnyHabit = BreakHabit | BuildHabit
