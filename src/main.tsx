@@ -27,31 +27,35 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
   const { setSession, setIsLoading } = useAuthStore()
   const { setTheme, setHasSelectedTheme } = useThemeStore()
 
-  function loadUserData(userId: string) {
-    supabase
+  async function loadUserData(userId: string) {
+    const { data } = await supabase
       .from('settings')
       .select('selected_theme')
       .eq('user_id', userId)
       .single()
-      .then(({ data }) => {
-        if (data?.selected_theme) {
-          setTheme(data.selected_theme)
-          setHasSelectedTheme(true)
-        }
-      })
+
+    if (data?.selected_theme) {
+      setTheme(data.selected_theme)
+    } else {
+      setHasSelectedTheme(false)
+    }
   }
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       setSession(session)
+      if (session?.user) await loadUserData(session.user.id)
+      else setHasSelectedTheme(false)
       setIsLoading(false)
-      if (session?.user) loadUserData(session.user.id)
     })
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setSession(session)
       if (event === 'SIGNED_IN' && session?.user) {
         loadUserData(session.user.id)
+      }
+      if (event === 'SIGNED_OUT') {
+        setHasSelectedTheme(null)
       }
     })
 

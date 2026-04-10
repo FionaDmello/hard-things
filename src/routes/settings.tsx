@@ -1,4 +1,4 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { ThemePicker } from '../components/ThemePicker'
 import { useAuthStore } from '../stores'
 import { supabase } from '../lib/supabase'
@@ -9,10 +9,12 @@ export const Route = createFileRoute('/settings')({
 
 function Settings() {
   const signOut = useAuthStore((state) => state.signOut)
+  const navigate = useNavigate()
 
   async function handleSignOut() {
     await supabase.auth.signOut()
     signOut()
+    navigate({ to: '/' })
   }
 
   return (

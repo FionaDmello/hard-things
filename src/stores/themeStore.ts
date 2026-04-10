@@ -3,19 +3,20 @@ import type { Theme } from '../types/database'
 
 interface ThemeState {
   theme: Theme | null
-  hasSelectedTheme: boolean
+  // null = not yet checked, true = selected, false = not selected
+  hasSelectedTheme: boolean | null
   setTheme: (theme: Theme) => void
-  setHasSelectedTheme: (hasSelected: boolean) => void
+  setHasSelectedTheme: (hasSelected: boolean | null) => void
 }
 
 export const useThemeStore = create<ThemeState>((set) => ({
   theme: null,
-  hasSelectedTheme: false,
+  hasSelectedTheme: null,
   setTheme: (theme) => {
     document.documentElement.setAttribute('data-theme', theme)
     set({ theme, hasSelectedTheme: true })
   },
-  setHasSelectedTheme: (hasSelectedTheme) => set({ hasSelectedTheme }),
+  setHasSelectedTheme: (hasSelectedTheme: boolean | null) => set({ hasSelectedTheme }),
 }))
 
 export const ALL_THEMES: { id: Theme; name: string }[] = [

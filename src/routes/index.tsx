@@ -12,7 +12,7 @@ function Home() {
   const { user, isLoading: authLoading } = useAuthStore()
   const { hasSelectedTheme } = useThemeStore()
 
-  if (authLoading) {
+  if (authLoading || (user && hasSelectedTheme === null)) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-mid">Loading...</div>
