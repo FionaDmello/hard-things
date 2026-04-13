@@ -51,10 +51,19 @@ export interface Database {
           key: string
           label: string
           description: string
-          replacement: string
         }
         Insert: Omit<InsertOf<Database['public']['Tables']['habit_drivers']['Row']>, 'id'>
         Update: Partial<Database['public']['Tables']['habit_drivers']['Insert']>
+        Relationships: []
+      }
+      habit_driver_replacements: {
+        Row: {
+          id: string
+          driver_id: string
+          label: string
+        }
+        Insert: Omit<InsertOf<Database['public']['Tables']['habit_driver_replacements']['Row']>, 'id'>
+        Update: Partial<Database['public']['Tables']['habit_driver_replacements']['Insert']>
         Relationships: []
       }
       habit_versions: {
@@ -110,9 +119,8 @@ export interface Database {
           habit_id: string
           trigger_or_task: string | null
           driver: string | null
-          escape_route: string | null
+          available_replacement: string | null
           emotional_state: string | null
-          time_of_day: string | null
           five_minutes_after: string | null
           physical_sensation: string | null
           created_at: string
@@ -189,7 +197,9 @@ export interface Database {
 
 // ─── Convenience types ────────────────────────────────────────────────────────
 
-export type HabitDriver = Database['public']['Tables']['habit_drivers']['Row']
+export type HabitDriver = Database['public']['Tables']['habit_drivers']['Row'] & {
+  replacements: string[]
+}
 export type HabitVersion = Database['public']['Tables']['habit_versions']['Row']
 export type HabitSchedule = Database['public']['Tables']['habit_schedule']['Row']
 
@@ -227,9 +237,8 @@ export type ObservationEntry = {
   id: string
   trigger_or_task: string | null
   driver: string | null
-  escape_route: string | null
+  available_replacement: string | null
   emotional_state: string | null
-  time_of_day: string | null
   five_minutes_after: string | null
   physical_sensation: string | null
   created_at: string

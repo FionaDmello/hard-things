@@ -1,8 +1,8 @@
 -- Hard Things - Database Schema
 -- Run this in the Supabase SQL Editor
 -- Drop all existing tables before running:
---   drop table if exists public.habit_schedule, public.habit_versions, public.habit_drivers,
---     public.checkins, public.observations, public.collapses, public.urge_logs,
+--   drop table if exists public.habit_driver_replacements, public.habit_schedule, public.habit_versions,
+--     public.habit_drivers, public.checkins, public.observations, public.collapses, public.urge_logs,
 --     public.weekly_reviews, public.settings, public.habits cascade;
 
 -- Enable UUID extension
@@ -29,8 +29,14 @@ create table public.habit_drivers (
   habit_id uuid references public.habits(id) on delete cascade not null,
   key text not null,
   label text not null,
-  description text not null default '',
-  replacement text not null default ''
+  description text not null default ''
+);
+
+-- Replacement techniques per driver — multiple options per driver
+create table public.habit_driver_replacements (
+  id uuid primary key default uuid_generate_v4(),
+  driver_id uuid references public.habit_drivers(id) on delete cascade not null,
+  label text not null
 );
 
 -- Practice levels per build habit.
@@ -80,9 +86,8 @@ create table public.observations (
   habit_id uuid references public.habits(id) on delete cascade not null,
   trigger_or_task text,
   driver text,
-  escape_route text,
+  available_replacement text,
   emotional_state text,
-  time_of_day text,
   five_minutes_after text,
   physical_sensation text,
   created_at timestamptz not null default now()
@@ -139,6 +144,7 @@ create table public.settings (
 
 alter table public.habits enable row level security;
 alter table public.habit_drivers enable row level security;
+alter table public.habit_driver_replacements enable row level security;
 alter table public.habit_versions enable row level security;
 alter table public.habit_schedule enable row level security;
 alter table public.checkins enable row level security;
@@ -159,6 +165,12 @@ create policy "Users can view their own habit drivers" on public.habit_drivers f
 create policy "Users can insert their own habit drivers" on public.habit_drivers for insert with check (exists (select 1 from public.habits where id = habit_id and user_id = auth.uid()));
 create policy "Users can update their own habit drivers" on public.habit_drivers for update using (exists (select 1 from public.habits where id = habit_id and user_id = auth.uid()));
 create policy "Users can delete their own habit drivers" on public.habit_drivers for delete using (exists (select 1 from public.habits where id = habit_id and user_id = auth.uid()));
+
+-- Habit driver replacements (access via driver → habit ownership)
+create policy "Users can view their own driver replacements" on public.habit_driver_replacements for select using (exists (select 1 from public.habit_drivers hd join public.habits h on h.id = hd.habit_id where hd.id = driver_id and h.user_id = auth.uid()));
+create policy "Users can insert their own driver replacements" on public.habit_driver_replacements for insert with check (exists (select 1 from public.habit_drivers hd join public.habits h on h.id = hd.habit_id where hd.id = driver_id and h.user_id = auth.uid()));
+create policy "Users can update their own driver replacements" on public.habit_driver_replacements for update using (exists (select 1 from public.habit_drivers hd join public.habits h on h.id = hd.habit_id where hd.id = driver_id and h.user_id = auth.uid()));
+create policy "Users can delete their own driver replacements" on public.habit_driver_replacements for delete using (exists (select 1 from public.habit_drivers hd join public.habits h on h.id = hd.habit_id where hd.id = driver_id and h.user_id = auth.uid()));
 
 -- Habit versions
 create policy "Users can view their own habit versions" on public.habit_versions for select using (exists (select 1 from public.habits where id = habit_id and user_id = auth.uid()));
@@ -211,6 +223,7 @@ create policy "Users can update their own settings" on public.settings for updat
 
 create index idx_habits_user_id on public.habits(user_id);
 create index idx_habit_drivers_habit_id on public.habit_drivers(habit_id);
+create index idx_habit_driver_replacements_driver_id on public.habit_driver_replacements(driver_id);
 create index idx_habit_versions_habit_id on public.habit_versions(habit_id);
 create index idx_habit_versions_sub_habit on public.habit_versions(habit_id, sub_habit) where sub_habit is not null;
 create index idx_habit_schedule_habit_id on public.habit_schedule(habit_id);
@@ -249,12 +262,19 @@ as $$
             (
               select json_agg(
                 json_build_object(
-                  'id',          d.id,
-                  'habit_id',    d.habit_id,
-                  'key',         d.key,
-                  'label',       d.label,
-                  'description', d.description,
-                  'replacement', d.replacement
+                  'id',           d.id,
+                  'habit_id',     d.habit_id,
+                  'key',          d.key,
+                  'label',        d.label,
+                  'description',  d.description,
+                  'replacements', coalesce(
+                    (
+                      select json_agg(r.label order by r.id)
+                      from habit_driver_replacements r
+                      where r.driver_id = d.id
+                    ),
+                    '[]'::json
+                  )
                 )
               )
               from habit_drivers d
@@ -372,15 +392,14 @@ as $$
         'date',    (o.created_at at time zone 'UTC')::date,
         'entries', json_agg(
           json_build_object(
-            'id',                 o.id,
-            'trigger_or_task',    o.trigger_or_task,
-            'driver',             o.driver,
-            'escape_route',       o.escape_route,
-            'emotional_state',    o.emotional_state,
-            'time_of_day',        o.time_of_day,
-            'five_minutes_after', o.five_minutes_after,
-            'physical_sensation', o.physical_sensation,
-            'created_at',         o.created_at
+            'id',                   o.id,
+            'trigger_or_task',      o.trigger_or_task,
+            'driver',               o.driver,
+            'available_replacement', o.available_replacement,
+            'emotional_state',      o.emotional_state,
+            'five_minutes_after',   o.five_minutes_after,
+            'physical_sensation',   o.physical_sensation,
+            'created_at',           o.created_at
           )
           order by o.created_at
         )

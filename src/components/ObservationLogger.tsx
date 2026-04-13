@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '../lib/supabase'
 import { useAuthStore } from '../stores'
-import type { BreakHabit, ObservationStats, ObservationDay, ObservationEntry } from '../types/database'
+import type { BreakHabit, HabitDriver, ObservationStats, ObservationDay, ObservationEntry } from '../types/database'
 
 const OBSERVATION_THRESHOLD = 14
 
@@ -58,7 +58,7 @@ export function ObservationLogger({ habit }: Props) {
         {stats.days_remaining} {stats.days_remaining === 1 ? 'day' : 'days'} remaining in observation phase
       </p>
       <LogForm
-        habitId={habit.id}
+        habit={habit}
         userId={user!.id}
         onSaved={() => queryClient.invalidateQueries({ queryKey })}
       />
@@ -104,33 +104,37 @@ function AcknowledgementScreen({
 // ─── Log Form ─────────────────────────────────────────────────────────────────
 
 function LogForm({
-  habitId,
+  habit,
   userId,
   onSaved,
 }: {
-  habitId: string
+  habit: BreakHabit
   userId: string
   onSaved: () => void
 }) {
   const [open, setOpen] = useState(false)
   const [triggerOrTask, setTriggerOrTask] = useState('')
-  const [driver, setDriver] = useState('')
-  const [escapeRoute, setEscapeRoute] = useState('')
+  const [selectedDriver, setSelectedDriver] = useState<HabitDriver | null>(null)
+  const [availableReplacement, setAvailableReplacement] = useState('')
   const [emotionalState, setEmotionalState] = useState('')
-  const [timeOfDay, setTimeOfDay] = useState('')
   const [fiveMinutesAfter, setFiveMinutesAfter] = useState('')
   const [physicalSensation, setPhysicalSensation] = useState('')
+
+  function handleDriverSelect(driverKey: string) {
+    const driver = habit.habit_drivers.find((d) => d.key === driverKey) ?? null
+    setSelectedDriver(driver)
+    setAvailableReplacement('')
+  }
 
   const { mutate: save, isPending } = useMutation({
     mutationFn: async () => {
       const { error } = await supabase.from('observations').insert({
         user_id: userId,
-        habit_id: habitId,
+        habit_id: habit.id,
         trigger_or_task: triggerOrTask || null,
-        driver: driver || null,
-        escape_route: escapeRoute || null,
+        driver: selectedDriver?.key || null,
+        available_replacement: availableReplacement || null,
         emotional_state: emotionalState || null,
-        time_of_day: timeOfDay || null,
         five_minutes_after: fiveMinutesAfter || null,
         physical_sensation: physicalSensation || null,
       })
@@ -140,10 +144,9 @@ function LogForm({
       onSaved()
       setOpen(false)
       setTriggerOrTask('')
-      setDriver('')
-      setEscapeRoute('')
+      setSelectedDriver(null)
+      setAvailableReplacement('')
       setEmotionalState('')
-      setTimeOfDay('')
       setFiveMinutesAfter('')
       setPhysicalSensation('')
     },
@@ -165,10 +168,40 @@ function LogForm({
       <p className="text-sm font-medium text-primary">Log an observation</p>
 
       <Field label="What were you doing or avoiding?" value={triggerOrTask} onChange={setTriggerOrTask} />
-      <Field label="What job was it doing?" value={driver} onChange={setDriver} />
-      <Field label="Was there an escape route available?" value={escapeRoute} onChange={setEscapeRoute} />
+
+      {/* Driver dropdown */}
+      <div>
+        <label className="block text-sm text-primary mb-1">What job was it doing?</label>
+        <select
+          value={selectedDriver?.key ?? ''}
+          onChange={(e) => handleDriverSelect(e.target.value)}
+          className="w-full px-3 py-2 text-sm rounded-lg border border-mid/30 bg-light focus:outline-none focus:border-accent"
+        >
+          <option value="">Select a driver</option>
+          {habit.habit_drivers.map((d) => (
+            <option key={d.key} value={d.key}>{d.label}</option>
+          ))}
+        </select>
+      </div>
+
+      {/* Replacement dropdown — only shown once a driver is selected */}
+      {selectedDriver && selectedDriver.replacements.length > 0 && (
+        <div>
+          <label className="block text-sm text-primary mb-1">What was available at the moment?</label>
+          <select
+            value={availableReplacement}
+            onChange={(e) => setAvailableReplacement(e.target.value)}
+            className="w-full px-3 py-2 text-sm rounded-lg border border-mid/30 bg-light focus:outline-none focus:border-accent"
+          >
+            <option value="">Select a replacement</option>
+            {selectedDriver.replacements.map((r) => (
+              <option key={r} value={r}>{r}</option>
+            ))}
+          </select>
+        </div>
+      )}
+
       <Field label="Emotional state at the time" value={emotionalState} onChange={setEmotionalState} />
-      <Field label="Time of day" value={timeOfDay} onChange={setTimeOfDay} />
       <Field label="How did you feel five minutes after?" value={fiveMinutesAfter} onChange={setFiveMinutesAfter} />
       <Field label="Physical sensation" value={physicalSensation} onChange={setPhysicalSensation} />
 
@@ -259,12 +292,16 @@ function DayGroup({ day }: { day: ObservationDay }) {
 }
 
 function EntryRow({ entry }: { entry: ObservationEntry }) {
+  const time = new Date(entry.created_at).toLocaleTimeString('en-GB', {
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+
   const fields: { label: string; value: string | null }[] = [
     { label: 'What was happening', value: entry.trigger_or_task },
     { label: 'Job it was doing', value: entry.driver },
-    { label: 'Escape route', value: entry.escape_route },
+    { label: 'What was available', value: entry.available_replacement },
     { label: 'Emotional state', value: entry.emotional_state },
-    { label: 'Time of day', value: entry.time_of_day },
     { label: 'Five minutes after', value: entry.five_minutes_after },
     { label: 'Physical sensation', value: entry.physical_sensation },
   ]
@@ -273,6 +310,7 @@ function EntryRow({ entry }: { entry: ObservationEntry }) {
 
   return (
     <div className="p-3 space-y-1 bg-light text-sm">
+      <p className="text-mid text-xs mb-2">{time}</p>
       {populated.map((f) => (
         <div key={f.label}>
           <span className="text-mid text-xs">{f.label}: </span>

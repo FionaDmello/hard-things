@@ -83,13 +83,17 @@ export function HabitReferenceCard({ habit }: Props) {
           )}
 
           {/* Replacements — break habits */}
-          {habit.section === 'break' && habit.habit_drivers.some((d) => d.replacement) && (
+          {habit.section === 'break' && habit.habit_drivers.some((d) => d.replacements.length > 0) && (
             <CollapsibleSection title="Replacement strategies">
-              <ul className="space-y-2">
-                {habit.habit_drivers.map((driver) => (
+              <ul className="space-y-3">
+                {habit.habit_drivers.filter((d) => d.replacements.length > 0).map((driver) => (
                   <li key={driver.key}>
-                    <span className="font-medium">{driver.label}:</span>{' '}
-                    {driver.replacement}
+                    <span className="font-medium">{driver.label}:</span>
+                    <ul className="mt-1 space-y-1 pl-3">
+                      {driver.replacements.map((r) => (
+                        <li key={r} className="text-mid">— {r}</li>
+                      ))}
+                    </ul>
                   </li>
                 ))}
               </ul>
