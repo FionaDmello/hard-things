@@ -9,6 +9,7 @@ export const Route = createFileRoute('/settings')({
 
 function Settings() {
   const signOut = useAuthStore((state) => state.signOut)
+  const user = useAuthStore((state) => state.user)
   const navigate = useNavigate()
 
   async function handleSignOut() {
@@ -34,15 +35,20 @@ function Settings() {
         <div className="mt-6 h-px bg-mid/20" />
       </header>
 
-      <section className="mb-8">
-        <h2 className="font-medium text-primary mb-4">Theme</h2>
+      <section className="mb-12">
+        <p className="text-xs uppercase tracking-[0.2em] text-mid mb-5">Appearance</p>
         <ThemePicker />
       </section>
 
-      <section>
+      <div className="h-px bg-mid/15 mb-10" />
+
+      <section className="flex items-center justify-between">
+        {user?.email && (
+          <p className="text-xs text-mid">{user.email}</p>
+        )}
         <button
           onClick={handleSignOut}
-          className="text-sm text-mid hover:text-primary"
+          className="text-xs uppercase tracking-[0.15em] text-mid hover:text-primary transition-colors"
         >
           Sign out
         </button>

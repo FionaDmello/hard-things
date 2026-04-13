@@ -7,6 +7,25 @@ interface ThemePickerProps {
   isFirstLaunch?: boolean
 }
 
+const THEME_META: Record<Theme, { description: string; palette: string[] }> = {
+  'amber-plum': {
+    description: 'Warm · Contemplative',
+    palette: ['#4A2C6E', '#7A4FA0', '#F0E8F8', '#C0703A'],
+  },
+  'sage-terracotta': {
+    description: 'Grounded · Natural',
+    palette: ['#3D5A47', '#6B8F71', '#EAF2EC', '#B85C38'],
+  },
+  'midnight-gold': {
+    description: 'Deep · Focused',
+    palette: ['#1A2E4A', '#2E5480', '#E8F0F8', '#B8860B'],
+  },
+  'rose-charcoal': {
+    description: 'Soft · Understated',
+    palette: ['#4A3040', '#8B5A6A', '#F8EEF2', '#6B6B6B'],
+  },
+}
+
 export function ThemePicker({ isFirstLaunch = false }: ThemePickerProps) {
   const { theme: currentTheme, setTheme } = useThemeStore()
   const user = useAuthStore((state) => state.user)
@@ -27,51 +46,57 @@ export function ThemePicker({ isFirstLaunch = false }: ThemePickerProps) {
       <div className={isFirstLaunch ? 'max-w-md w-full' : ''}>
         {isFirstLaunch && (
           <div className="text-center mb-8">
-            <h1 className="text-2xl font-semibold text-primary mb-2">
+            <h1
+              className="text-primary mb-2 leading-tight"
+              style={{ fontFamily: "'Cormorant', Georgia, serif", fontWeight: 300, fontSize: 'clamp(2rem, 6vw, 2.6rem)' }}
+            >
               Welcome to Hard Things
             </h1>
-            <p className="text-mid">Choose your theme to get started</p>
+            <p className="text-sm text-mid">Choose a theme to get started</p>
           </div>
         )}
 
-        <div className="grid gap-4">
-          {themes.map((theme) => (
-            <button
-              key={theme.id}
-              onClick={() => handleThemeSelect(theme.id)}
-              className={`p-4 rounded-lg border-2 text-left transition-all ${
-                currentTheme === theme.id
-                  ? 'border-accent bg-accent-light'
-                  : 'border-mid/20 hover:border-mid/40'
-              }`}
-            >
-              <div className="font-medium text-primary">{theme.name}</div>
-              <div className="flex gap-2 mt-2">
-                <ThemePreview themeId={theme.id} />
-              </div>
-            </button>
-          ))}
+        <div className="grid gap-3">
+          {themes.map((theme) => {
+            const meta = THEME_META[theme.id]
+            const isActive = currentTheme === theme.id
+            return (
+              <button
+                key={theme.id}
+                onClick={() => handleThemeSelect(theme.id)}
+                className={`w-full p-4 rounded-xl border text-left transition-all ${
+                  isActive
+                    ? 'border-accent bg-accent-light'
+                    : 'border-mid/20 hover:border-mid/40'
+                }`}
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <div>
+                    <p className="text-sm font-medium text-primary">{theme.name}</p>
+                    <p className="text-xs text-mid mt-0.5">{meta.description}</p>
+                  </div>
+                  {isActive && (
+                    <span className="text-xs uppercase tracking-[0.15em] text-accent">Active</span>
+                  )}
+                </div>
+                <PaletteStrip palette={meta.palette} />
+              </button>
+            )
+          })}
         </div>
       </div>
     </div>
   )
 }
 
-function ThemePreview({ themeId }: { themeId: Theme }) {
-  const colors: Record<Theme, { primary: string; mid: string; accent: string }> = {
-    'amber-plum': { primary: '#4A2C6E', mid: '#7A4FA0', accent: '#C0703A' },
-    'sage-terracotta': { primary: '#3D5A47', mid: '#6B8F71', accent: '#B85C38' },
-    'midnight-gold': { primary: '#1A2E4A', mid: '#2E5480', accent: '#B8860B' },
-    'rose-charcoal': { primary: '#4A3040', mid: '#8B5A6A', accent: '#6B6B6B' },
-  }
-
-  const c = colors[themeId]
+function PaletteStrip({ palette }: { palette: string[] }) {
+  const [c1, c2, c3, c4] = palette
+  const gradient = `linear-gradient(to right, ${c1} 0%, ${c1} 30%, ${c2} 30%, ${c2} 55%, ${c3} 55%, ${c3} 75%, ${c4} 75%)`
 
   return (
-    <>
-      <div className="w-6 h-6 rounded" style={{ backgroundColor: c.primary }} />
-      <div className="w-6 h-6 rounded" style={{ backgroundColor: c.mid }} />
-      <div className="w-6 h-6 rounded" style={{ backgroundColor: c.accent }} />
-    </>
+    <div
+      className="w-full h-1.5 rounded-full"
+      style={{ background: gradient }}
+    />
   )
 }
