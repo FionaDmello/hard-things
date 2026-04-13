@@ -145,6 +145,7 @@ interface FormProps {
 
 function ReviewForm({ userId, weekStart, onSaved, onCancel }: FormProps) {
   const [stepIndex, setStepIndex] = useState(0)
+  const [showTransition, setShowTransition] = useState(false)
   const [answers, setAnswers] = useState<Record<string, string>>({
     what_i_did: '',
     what_got_in_way: '',
@@ -175,12 +176,13 @@ function ReviewForm({ userId, weekStart, onSaved, onCancel }: FormProps) {
     setAnswers((a) => ({ ...a, [key]: value }))
   }
 
-  // Steps 0-2: the three prompts
+  // Steps 0-2: reflection prompts
   if (stepIndex < STEPS.length) {
     const step = STEPS[stepIndex]
+    const isLastReflection = stepIndex === STEPS.length - 1
     return (
       <div className="p-4 bg-accent-light border border-mid/20 rounded-lg space-y-4">
-        <p className="text-sm text-mid">{stepIndex + 1} of 4</p>
+        <p className="text-sm text-mid">Reflection {stepIndex + 1} of {STEPS.length}</p>
         <p className="font-medium text-primary">{step.prompt}</p>
         <textarea
           value={answers[step.key]}
@@ -191,7 +193,14 @@ function ReviewForm({ userId, weekStart, onSaved, onCancel }: FormProps) {
         />
         <div className="flex gap-3">
           <button
-            onClick={() => setStepIndex((i) => i + 1)}
+            onClick={() => {
+              if (isLastReflection) {
+                setStepIndex((i) => i + 1)
+                setShowTransition(true)
+              } else {
+                setStepIndex((i) => i + 1)
+              }
+            }}
             className="px-4 py-1.5 bg-primary text-light text-sm rounded-lg"
           >
             Next
@@ -207,10 +216,34 @@ function ReviewForm({ userId, weekStart, onSaved, onCancel }: FormProps) {
     )
   }
 
-  // Step 3: three-sentence note
+  // Transition screen
+  if (showTransition) {
+    return (
+      <div className="p-4 bg-accent-light border border-mid/20 rounded-lg space-y-4">
+        <p className="font-medium text-primary">Now distill it into three sentences.</p>
+        <p className="text-sm text-mid">These will be shown on your dashboard as a reminder of the week.</p>
+        <div className="flex gap-3">
+          <button
+            onClick={() => setShowTransition(false)}
+            className="px-4 py-1.5 bg-primary text-light text-sm rounded-lg"
+          >
+            Continue
+          </button>
+          <button
+            onClick={onCancel}
+            className="px-4 py-1.5 text-mid text-sm hover:text-primary"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  // Summary step
   return (
     <div className="p-4 bg-accent-light border border-mid/20 rounded-lg space-y-4">
-      <p className="text-sm text-mid">4 of 4</p>
+      <p className="text-sm text-mid">Summary</p>
       <p className="font-medium text-primary">Three sentences to close the week.</p>
 
       <div className="space-y-3">
