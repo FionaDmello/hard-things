@@ -21,7 +21,11 @@ type InsertOf<T> = {
 export interface Database {
   public: {
     Views: Record<string, never>
-    Functions: Record<string, never>
+    Functions: {
+      get_break_habits: { Args: Record<string, never>; Returns: Json }
+      get_build_habits: { Args: Record<string, never>; Returns: Json }
+      get_observation_stats: { Args: { p_habit_id: string }; Returns: Json }
+    }
     Enums: Record<string, never>
     CompositeTypes: Record<string, never>
     Tables: {
@@ -216,3 +220,29 @@ export type BuildHabit = Omit<HabitRow, 'section'> & {
 
 // Discriminated union — use habit.section === 'break'/'build' to narrow
 export type AnyHabit = BreakHabit | BuildHabit
+
+// ─── Observation types ────────────────────────────────────────────────────────
+
+export type ObservationEntry = {
+  id: string
+  trigger_or_task: string | null
+  driver: string | null
+  escape_route: string | null
+  emotional_state: string | null
+  time_of_day: string | null
+  five_minutes_after: string | null
+  physical_sensation: string | null
+  created_at: string
+}
+
+export type ObservationDay = {
+  date: string
+  entries: ObservationEntry[]
+}
+
+// Returned by supabase.rpc('get_observation_stats')
+export type ObservationStats = {
+  distinct_days_logged: number
+  days_remaining: number
+  observations_by_day: ObservationDay[]
+}

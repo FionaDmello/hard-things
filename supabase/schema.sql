@@ -346,3 +346,51 @@ $$;
 
 grant execute on function get_break_habits() to authenticated;
 grant execute on function get_build_habits() to authenticated;
+
+create or replace function get_observation_stats(p_habit_id uuid)
+returns json
+language sql
+security definer
+set search_path = public
+stable
+as $$
+  select json_build_object(
+    'distinct_days_logged', coalesce(stats.distinct_days, 0),
+    'days_remaining',       greatest(0, 14 - coalesce(stats.distinct_days, 0)),
+    'observations_by_day',  coalesce(history.by_day, '[]'::json)
+  )
+  from (
+    select count(distinct (o.created_at at time zone 'UTC')::date) as distinct_days
+    from observations o
+    where o.habit_id = p_habit_id
+      and o.user_id = auth.uid()
+  ) stats,
+  (
+    select json_agg(day_group order by day_group->>'date' desc) as by_day
+    from (
+      select json_build_object(
+        'date',    (o.created_at at time zone 'UTC')::date,
+        'entries', json_agg(
+          json_build_object(
+            'id',                 o.id,
+            'trigger_or_task',    o.trigger_or_task,
+            'driver',             o.driver,
+            'escape_route',       o.escape_route,
+            'emotional_state',    o.emotional_state,
+            'time_of_day',        o.time_of_day,
+            'five_minutes_after', o.five_minutes_after,
+            'physical_sensation', o.physical_sensation,
+            'created_at',         o.created_at
+          )
+          order by o.created_at
+        )
+      ) as day_group
+      from observations o
+      where o.habit_id = p_habit_id
+        and o.user_id = auth.uid()
+      group by (o.created_at at time zone 'UTC')::date
+    ) grouped
+  ) history
+$$;
+
+grant execute on function get_observation_stats(uuid) to authenticated;

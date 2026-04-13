@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '../lib/supabase'
 import { useAuthStore } from '../stores'
 import type { BreakHabit, Database } from '../types/database'
+import { ObservationLogger } from './ObservationLogger'
 
 type Checkin = Database['public']['Tables']['checkins']['Row']
 
@@ -39,11 +40,7 @@ export function CheckInFormBreak({ habit }: Props) {
 
   // Phase 1 — observation logger handles this habit, not check-in
   if (isObservationPhase) {
-    return (
-      <p className="mt-2 text-sm text-mid">
-        Observation phase — use the observation log to record instances.
-      </p>
-    )
+    return <ObservationLogger habit={habit} />
   }
 
   if (isLoading) return null
