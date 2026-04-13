@@ -14,7 +14,7 @@ export function Dashboard() {
   })
 
   return (
-    <div className="min-h-screen bg-light">
+    <div className="min-h-screen">
       <div className="max-w-lg mx-auto px-6 pt-14 pb-20">
 
         {/* Editorial date header */}
