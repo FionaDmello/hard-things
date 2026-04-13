@@ -45,7 +45,6 @@ export function ObservationLogger({ habit }: Props) {
   if (isComplete) {
     return (
       <AcknowledgementScreen
-        habitName={habit.name}
         onConfirm={() => confirmPhaseChange()}
         isPending={isConfirming}
       />
@@ -53,15 +52,26 @@ export function ObservationLogger({ habit }: Props) {
   }
 
   return (
-    <div className="mt-3 space-y-4">
-      <p className="text-sm text-mid">
-        {stats.days_remaining} {stats.days_remaining === 1 ? 'day' : 'days'} remaining in observation phase
-      </p>
+    <div className="mt-4 space-y-5">
+      {/* Progress */}
+      <div className="flex items-baseline gap-2">
+        <span
+          className="text-primary"
+          style={{ fontFamily: "'Cormorant', Georgia, serif", fontWeight: 400, fontSize: '1.6rem', lineHeight: 1 }}
+        >
+          {stats.distinct_days_logged}
+        </span>
+        <span className="text-xs uppercase tracking-[0.15em] text-mid">
+          of {OBSERVATION_THRESHOLD} days observed
+        </span>
+      </div>
+
       <LogForm
         habit={habit}
         userId={user!.id}
         onSaved={() => queryClient.invalidateQueries({ queryKey })}
       />
+
       {stats.observations_by_day.length > 0 && (
         <ObservationHistory days={stats.observations_by_day} />
       )}
@@ -72,30 +82,34 @@ export function ObservationLogger({ habit }: Props) {
 // ─── Acknowledgement Screen ───────────────────────────────────────────────────
 
 function AcknowledgementScreen({
-  habitName,
   onConfirm,
   isPending,
 }: {
-  habitName: string
   onConfirm: () => void
   isPending: boolean
 }) {
   return (
-    <div className="mt-3 p-4 bg-accent-light border border-mid/20 rounded-lg space-y-4">
-      <p className="font-medium text-primary">{habitName}</p>
-      <p className="text-primary">
-        You've completed 14 days of observation. You have enough to work with.
-      </p>
-      <p className="text-sm text-mid">
-        The next phase is about replacing — finding what the habit is doing for you and
-        giving that need another route.
+    <div className="mt-4 space-y-5">
+      <div>
+        <p className="text-xs uppercase tracking-[0.2em] text-mid mb-3">Phase 1 complete</p>
+        <h3
+          className="text-primary leading-snug"
+          style={{ fontFamily: "'Cormorant', Georgia, serif", fontWeight: 300, fontSize: 'clamp(1.4rem, 4vw, 1.75rem)' }}
+        >
+          14 days of observation. You have enough to work with.
+        </h3>
+      </div>
+      <p className="text-sm text-mid leading-relaxed">
+        The next phase is about replacing — finding what the habit is doing for you
+        and giving that need another route.
       </p>
       <button
         onClick={onConfirm}
         disabled={isPending}
-        className="px-4 py-2 bg-primary text-light text-sm rounded-lg disabled:opacity-50"
+        className="w-full py-3 px-4 bg-primary text-light text-sm rounded-xl flex items-center justify-between disabled:opacity-50"
       >
-        {isPending ? 'Moving on...' : 'Move to next phase'}
+        <span>{isPending ? 'Moving on...' : 'Move to next phase'}</span>
+        <span className="opacity-60">→</span>
       </button>
     </div>
   )
@@ -156,49 +170,46 @@ function LogForm({
     return (
       <button
         onClick={() => setOpen(true)}
-        className="text-sm text-accent hover:opacity-80"
+        className="w-full py-3 px-4 border border-mid/25 text-primary rounded-xl text-left flex items-center justify-between group hover:border-mid/50 transition-colors"
       >
-        Log an observation
+        <span className="text-sm">Log an observation</span>
+        <span className="text-mid opacity-40 group-hover:opacity-80">+</span>
       </button>
     )
   }
 
   return (
-    <div className="p-4 bg-accent-light border border-mid/20 rounded-lg space-y-3">
-      <p className="text-sm font-medium text-primary">Log an observation</p>
+    <div className="p-4 border border-mid/20 rounded-xl space-y-4">
+      <p className="text-xs uppercase tracking-[0.2em] text-mid">New observation</p>
 
       <Field label="What were you doing or avoiding?" value={triggerOrTask} onChange={setTriggerOrTask} />
 
-      {/* Driver dropdown */}
-      <div>
-        <label className="block text-sm text-primary mb-1">What job was it doing?</label>
+      <SelectField label="What job was it doing?">
         <select
           value={selectedDriver?.key ?? ''}
           onChange={(e) => handleDriverSelect(e.target.value)}
-          className="w-full px-3 py-2 text-sm rounded-lg border border-mid/30 bg-light focus:outline-none focus:border-accent"
+          className="w-full px-3 py-2 pr-8 text-sm rounded-lg border border-mid/30 bg-light focus:outline-none focus:border-accent appearance-none"
         >
           <option value="">Select a driver</option>
           {habit.habit_drivers.map((d) => (
             <option key={d.key} value={d.key}>{d.label}</option>
           ))}
         </select>
-      </div>
+      </SelectField>
 
-      {/* Replacement dropdown — only shown once a driver is selected */}
       {selectedDriver && selectedDriver.replacements.length > 0 && (
-        <div>
-          <label className="block text-sm text-primary mb-1">What was available at the moment?</label>
+        <SelectField label="What was available at the moment?">
           <select
             value={availableReplacement}
             onChange={(e) => setAvailableReplacement(e.target.value)}
-            className="w-full px-3 py-2 text-sm rounded-lg border border-mid/30 bg-light focus:outline-none focus:border-accent"
+            className="w-full px-3 py-2 pr-8 text-sm rounded-lg border border-mid/30 bg-light focus:outline-none focus:border-accent appearance-none"
           >
             <option value="">Select a replacement</option>
             {selectedDriver.replacements.map((r) => (
               <option key={r} value={r}>{r}</option>
             ))}
           </select>
-        </div>
+        </SelectField>
       )}
 
       <Field label="Emotional state at the time" value={emotionalState} onChange={setEmotionalState} />
@@ -235,13 +246,27 @@ function Field({
 }) {
   return (
     <div>
-      <label className="block text-sm text-primary mb-1">{label}</label>
+      <label className="block text-xs uppercase tracking-[0.15em] text-mid mb-1.5">{label}</label>
       <input
         type="text"
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full px-3 py-2 text-sm rounded-lg border border-mid/30 bg-light focus:outline-none focus:border-accent"
+        className="w-full px-3 py-2 pr-8 text-sm rounded-lg border border-mid/30 bg-light focus:outline-none focus:border-accent appearance-none"
       />
+    </div>
+  )
+}
+
+function SelectField({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div>
+      <label className="block text-xs uppercase tracking-[0.15em] text-mid mb-1.5">{label}</label>
+      <div className="relative">
+        {children}
+        <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-primary text-sm">
+          ▾
+        </span>
+      </div>
     </div>
   )
 }
@@ -250,11 +275,13 @@ function Field({
 
 function ObservationHistory({ days }: { days: ObservationDay[] }) {
   return (
-    <div className="space-y-2">
-      <p className="text-sm text-mid">Past observations</p>
-      {days.map((day) => (
-        <DayGroup key={day.date} day={day} />
-      ))}
+    <div>
+      <p className="text-xs uppercase tracking-[0.2em] text-mid mb-3">Past observations</p>
+      <div>
+        {days.map((day) => (
+          <DayGroup key={day.date} day={day} />
+        ))}
+      </div>
     </div>
   )
 }
@@ -270,18 +297,26 @@ function DayGroup({ day }: { day: ObservationDay }) {
   })
 
   return (
-    <div className="border border-mid/20 rounded-lg overflow-hidden">
+    <div className="border-b border-mid/15 last:border-b-0">
       <button
         onClick={() => setOpen((o) => !o)}
-        className="w-full flex justify-between items-center p-3 text-left bg-accent-light hover:bg-mid/10"
+        className="w-full flex justify-between items-center py-3 text-left group"
       >
-        <span className="text-sm text-primary">{label}</span>
-        <span className="text-mid text-xs">
-          {day.entries.length} {day.entries.length === 1 ? 'entry' : 'entries'} {open ? '▲' : '▼'}
-        </span>
+        <span className="text-sm text-primary group-hover:text-accent transition-colors">{label}</span>
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-mid">
+            {day.entries.length} {day.entries.length === 1 ? 'entry' : 'entries'}
+          </span>
+          <span
+            className="w-4 h-4 flex items-center justify-center text-mid transition-transform duration-200"
+            style={{ transform: open ? 'rotate(45deg)' : 'rotate(0deg)' }}
+          >
+            +
+          </span>
+        </div>
       </button>
       {open && (
-        <div className="divide-y divide-mid/10">
+        <div className="mt-1 mb-4 space-y-4">
           {day.entries.map((entry) => (
             <EntryRow key={entry.id} entry={entry} />
           ))}
@@ -309,8 +344,11 @@ function EntryRow({ entry }: { entry: ObservationEntry }) {
   const populated = fields.filter((f) => f.value)
 
   return (
-    <div className="p-3 space-y-1 bg-light text-sm">
-      <p className="text-mid text-xs mb-2">{time}</p>
+    <div
+      className="pl-4 space-y-1.5 text-sm"
+      style={{ borderLeft: '2px solid var(--color-accent)', opacity: 0.85 }}
+    >
+      <p className="text-xs uppercase tracking-[0.15em] text-mid">{time}</p>
       {populated.map((f) => (
         <div key={f.label}>
           <span className="text-mid text-xs">{f.label}: </span>

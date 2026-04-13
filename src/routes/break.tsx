@@ -9,6 +9,12 @@ export const Route = createFileRoute('/break')({
   component: BreakHabits,
 })
 
+const PHASE_LABELS: Record<string, string> = {
+  phase_1_observe: 'Observing',
+  phase_2_replace: 'Replacing',
+  phase_3_quit: 'Quitting',
+}
+
 function BreakHabits() {
   const { data: habits = [], isLoading } = useQuery({
     queryKey: ['habits', 'break'],
@@ -40,22 +46,33 @@ function BreakHabits() {
       </header>
 
       {habits.length === 0 ? (
-        <p className="text-mid">No habits configured yet.</p>
+        <p className="text-sm text-mid italic">Nothing configured yet.</p>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-6">
           {habits.map((habit) => (
             <div
               key={habit.id}
-              className="bg-accent-light p-4 rounded-lg border border-mid/20"
+              className="bg-accent-light rounded-xl border border-mid/20 overflow-hidden"
             >
-              <h2 className="font-medium text-primary">{habit.name}</h2>
-              {habit.current_phase && (
-                <p className="text-sm text-mid mt-1 capitalize">
-                  {habit.current_phase.replace(/_/g, ' ')}
-                </p>
-              )}
-              <CheckInFormBreak habit={habit} />
-              <HabitReferenceCard habit={habit} />
+              <div className="px-5 pt-5 pb-4 flex items-start justify-between gap-4">
+                <h2
+                  className="text-primary leading-snug"
+                  style={{ fontFamily: "'Cormorant', Georgia, serif", fontWeight: 400, fontSize: '1.35rem' }}
+                >
+                  {habit.name}
+                </h2>
+                {habit.current_phase && (
+                  <span className="flex-shrink-0 text-xs uppercase tracking-[0.15em] text-accent pt-0.5">
+                    {PHASE_LABELS[habit.current_phase] ?? habit.current_phase}
+                  </span>
+                )}
+              </div>
+
+              <div className="px-5 pb-5">
+                <CheckInFormBreak habit={habit} />
+                <div className="mt-5 h-px bg-mid/15" />
+                <HabitReferenceCard habit={habit} />
+              </div>
             </div>
           ))}
         </div>
