@@ -3,9 +3,11 @@ import { Link } from '@tanstack/react-router'
 import { NightBeforePrompt } from './NightBeforePrompt'
 import { WeeklyReview } from './WeeklyReview'
 import { CollapseHandler } from './CollapseHandler'
+import { UrgeProtocol } from './UrgeProtocol'
 
 export function Dashboard() {
   const [showCollapse, setShowCollapse] = useState(false)
+  const [showUrge, setShowUrge] = useState(false)
   const today = new Date()
   const dayName = today.toLocaleDateString('en-US', { weekday: 'long' })
   const dateStr = today.toLocaleDateString('en-US', {
@@ -37,7 +39,10 @@ export function Dashboard() {
         <section className="mb-10">
           <p className="text-xs uppercase tracking-[0.2em] text-mid mb-4">Right now</p>
           <div className="space-y-2">
-            <button className="w-full py-4 px-5 bg-accent text-light rounded-xl text-left flex items-center justify-between group transition-opacity hover:opacity-90">
+            <button
+              onClick={() => setShowUrge(true)}
+              className="w-full py-4 px-5 bg-accent text-light rounded-xl text-left flex items-center justify-between group transition-opacity hover:opacity-90"
+            >
               <div>
                 <p className="text-sm font-medium">Urge Protocol</p>
                 <p className="text-xs mt-0.5 opacity-70">Running an urge right now</p>
@@ -107,6 +112,8 @@ export function Dashboard() {
         </nav>
 
       </div>
+
+      {showUrge && <UrgeProtocol onClose={() => setShowUrge(false)} />}
 
       {showCollapse && <CollapseHandler onClose={() => setShowCollapse(false)} />}
     </div>

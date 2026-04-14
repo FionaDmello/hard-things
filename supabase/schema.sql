@@ -107,15 +107,16 @@ create table public.collapses (
 );
 
 create table public.urge_logs (
-  id uuid primary key default uuid_generate_v4(),
-  user_id uuid references auth.users(id) on delete cascade not null,
-  named_craving text not null,
-  selected_job text not null,
-  location_confirmed boolean not null default false,
-  replacement_shown text not null,
-  waited_ten_minutes boolean not null default false,
-  note text,
-  created_at timestamptz not null default now()
+  id                 uuid primary key default uuid_generate_v4(),
+  user_id            uuid references auth.users(id) on delete cascade not null,
+  habit_id           uuid references public.habits(id) on delete cascade not null,
+  urge_intensity     integer check (urge_intensity >= 1 and urge_intensity <= 10),
+  tool_used          text check (tool_used in ('surf', 'replace', 'delay')),
+  driver_key         text not null,
+  replacement_used   text,
+  outcome            text check (outcome in ('passed', 'acted_on')),
+  routed_to_collapse boolean not null default false,
+  created_at         timestamptz not null default now()
 );
 
 create table public.weekly_reviews (
@@ -234,6 +235,7 @@ create index idx_observations_user_id on public.observations(user_id);
 create index idx_observations_habit_id on public.observations(habit_id);
 create index idx_collapses_user_id on public.collapses(user_id);
 create index idx_urge_logs_user_id on public.urge_logs(user_id);
+create index idx_urge_logs_habit_id on public.urge_logs(habit_id);
 create index idx_weekly_reviews_user_id on public.weekly_reviews(user_id);
 
 -- ─── RPC Functions ────────────────────────────────────────────────────────────

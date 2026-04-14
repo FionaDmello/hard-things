@@ -150,12 +150,13 @@ export interface Database {
         Row: {
           id: string
           user_id: string
-          named_craving: string
-          selected_job: string
-          location_confirmed: boolean
-          replacement_shown: string
-          waited_ten_minutes: boolean
-          note: string | null
+          habit_id: string
+          urge_intensity: number | null
+          tool_used: 'surf' | 'replace' | 'delay' | null
+          driver_key: string
+          replacement_used: string | null
+          outcome: 'passed' | 'acted_on' | null
+          routed_to_collapse: boolean
           created_at: string
         }
         Insert: Omit<InsertOf<Database['public']['Tables']['urge_logs']['Row']>, 'id' | 'created_at'>
@@ -230,6 +231,11 @@ export type BuildHabit = Omit<HabitRow, 'section'> & {
 
 // Discriminated union — use habit.section === 'break'/'build' to narrow
 export type AnyHabit = BreakHabit | BuildHabit
+
+// ─── Urge log type ────────────────────────────────────────────────────────────
+
+export type UrgeLog = Database['public']['Tables']['urge_logs']['Row']
+export type UrgeLogInsert = Database['public']['Tables']['urge_logs']['Insert']
 
 // ─── Observation types ────────────────────────────────────────────────────────
 

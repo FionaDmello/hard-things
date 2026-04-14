@@ -7,6 +7,7 @@ import type { AnyHabit, BreakHabit, BuildHabit } from '../types/database'
 interface Props {
   habit?: AnyHabit
   onClose: () => void
+  entryAnimation?: string
 }
 
 const WHAT_GAVE_WAY_OPTIONS = [
@@ -28,7 +29,7 @@ const CLOSING_LINES: Record<ClosingVariant, [string, string]> = {
 
 // ─── Overlay ──────────────────────────────────────────────────────────────────
 
-export function CollapseHandler({ habit: initialHabit, onClose }: Props) {
+export function CollapseHandler({ habit: initialHabit, onClose, entryAnimation }: Props) {
   const [selectedHabit, setSelectedHabit] = useState<AnyHabit | null>(initialHabit ?? null)
 
   const { data: breakHabits = [] } = useQuery({
@@ -57,7 +58,7 @@ export function CollapseHandler({ habit: initialHabit, onClose }: Props) {
   return (
     <div
       className="fixed inset-0 bg-light z-50 overflow-y-auto"
-      style={{ animation: 'slide-up 320ms cubic-bezier(0.32, 0.72, 0, 1)' }}
+      style={{ animation: entryAnimation ?? 'slide-up 320ms cubic-bezier(0.32, 0.72, 0, 1)' }}
     >
       <div className="max-w-lg mx-auto px-6 pt-14 pb-24 min-h-screen">
         {!selectedHabit ? (
