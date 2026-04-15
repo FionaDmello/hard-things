@@ -7,7 +7,7 @@ interface ThemeState {
 }
 
 export const useThemeStore = create<ThemeState>((set) => ({
-  theme: 'light',
+  theme: 'dark',
   setTheme: (theme) => {
     document.documentElement.setAttribute('data-theme', theme)
     set({ theme })

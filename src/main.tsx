@@ -33,9 +33,8 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
       .from('settings')
       .select('selected_theme')
       .eq('user_id', userId)
-      .single()
+      .maybeSingle()
 
-    // Default to dark if no theme saved yet
     const theme = (data?.selected_theme as Theme) ?? 'dark'
     setTheme(theme)
   }

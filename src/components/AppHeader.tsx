@@ -21,7 +21,7 @@ export function AppHeader() {
     if (user) {
       await supabase
         .from('settings')
-        .upsert({ user_id: user.id, selected_theme: t })
+        .upsert({ user_id: user.id, selected_theme: t }, { onConflict: 'user_id' })
     }
   }
 

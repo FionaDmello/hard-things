@@ -8,8 +8,18 @@ export const Route = createRootRoute({
   component: RootComponent,
 })
 
+function LoadingScreen() {
+  return (
+    <div className="fixed inset-0 flex items-center justify-center bg-canvas">
+      <div className="w-5 h-5 rounded-full border-2 border-border border-t-accent animate-spin" />
+    </div>
+  )
+}
+
 function RootComponent() {
-  const { user } = useAuthStore()
+  const { user, isLoading } = useAuthStore()
+
+  if (isLoading) return <LoadingScreen />
 
   // Unauthenticated — full screen, no chrome
   if (!user) {
