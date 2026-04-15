@@ -14,17 +14,6 @@ const PHASE_LABELS: Record<string, string> = {
   phase_3_quit:    'Quitting',
 }
 
-const card: React.CSSProperties = {
-  backgroundColor: 'var(--color-card)',
-  border: '1px solid var(--color-border)',
-  borderRadius: '0.75rem',
-}
-
-const cardAccent: React.CSSProperties = {
-  backgroundColor: 'var(--color-canvas)',
-  borderRadius: '0.75rem',
-}
-
 export function Dashboard() {
   const [showCollapse, setShowCollapse] = useState(false)
   const [showUrge, setShowUrge] = useState(false)
@@ -59,10 +48,7 @@ export function Dashboard() {
       {/* Date header */}
       <header className="mb-10">
         <p className="eyebrow mb-2">{dayName}</p>
-        <h1
-          className="display"
-          style={{ fontSize: 'clamp(2.8rem, 10vw, 4rem)' }}
-        >
+        <h1 className="display" style={{ fontSize: 'clamp(2.8rem, 10vw, 4rem)' }}>
           {dateStr}
         </h1>
       </header>
@@ -70,112 +56,52 @@ export function Dashboard() {
       {/* Right now — crisis tools */}
       <section className="mb-10">
         <p className="eyebrow mb-3">Right now</p>
-        <div className="space-y-2">
+        <div className="flex flex-col gap-2">
 
-          {/* Urge Protocol — accent-warm card */}
           <button
             onClick={() => setShowUrge(true)}
-            style={{
-              ...cardAccent,
-              width: '100%',
-              padding: '20px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              cursor: 'pointer',
-              background: 'none',
-              textAlign: 'left',
-            }}
-            className="card-accent"
+            className="card-accent w-full flex items-center justify-between p-5 cursor-pointer text-left bg-transparent border-none"
           >
             <div>
-              <p style={{
-                fontFamily: "'DM Sans', system-ui, sans-serif",
-                fontWeight: 500,
-                fontSize: '15px',
-                color: 'var(--color-primary)',
-              }}>
-                Urge Protocol
-              </p>
-              <p style={{
-                fontFamily: "'DM Sans', system-ui, sans-serif",
-                fontWeight: 400,
-                fontSize: '12px',
-                color: 'var(--color-mid)',
-                marginTop: '2px',
-              }}>
-                Running an urge right now
-              </p>
+              <p className="font-sans font-medium text-[15px] text-primary">Urge Protocol</p>
+              <p className="font-sans font-normal text-xs text-mid mt-0.5">Running an urge right now</p>
             </div>
-            <span style={{ color: 'var(--color-accent)', fontSize: '14px', opacity: 0.7 }}>→</span>
+            <span className="text-accent text-sm opacity-70">→</span>
           </button>
 
-          {/* Collapse Handler — standard card */}
           <button
             onClick={() => setShowCollapse(true)}
-            style={{
-              ...card,
-              width: '100%',
-              padding: '16px 20px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              cursor: 'pointer',
-              background: 'var(--color-card)',
-              textAlign: 'left',
-            }}
+            className="card w-full flex items-center justify-between px-5 py-4 cursor-pointer text-left bg-transparent border-none"
           >
             <div>
-              <p style={{
-                fontFamily: "'DM Sans', system-ui, sans-serif",
-                fontWeight: 500,
-                fontSize: '15px',
-                color: 'var(--color-primary)',
-              }}>
-                Collapse Handler
-              </p>
-              <p style={{
-                fontFamily: "'DM Sans', system-ui, sans-serif",
-                fontWeight: 400,
-                fontSize: '12px',
-                color: 'var(--color-mid)',
-                marginTop: '2px',
-              }}>
-                Something slipped
-              </p>
+              <p className="font-sans font-medium text-[15px] text-primary">Collapse Handler</p>
+              <p className="font-sans font-normal text-xs text-mid mt-0.5">Something slipped</p>
             </div>
-            <span style={{ color: 'var(--color-mid)', fontSize: '14px', opacity: 0.5 }}>→</span>
+            <span className="text-mid text-sm opacity-50">→</span>
           </button>
 
         </div>
       </section>
 
-      {/* Tonight — conditional, NightBeforePrompt handles its own visibility */}
+      {/* Tonight */}
       <NightBeforePrompt />
 
-      {/* Today's habits — inline check-ins */}
+      {/* Today's habits */}
       {hasHabits && (
         <section className="mb-10">
           <p className="eyebrow mb-3">Today</p>
-          <div className="space-y-3">
+          <div className="flex flex-col gap-3">
 
             {breakHabits.map((habit) => (
-              <div key={habit.id} style={{ ...card, padding: '20px' }}>
-                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px', marginBottom: '4px' }}>
+              <div key={habit.id} className="card p-5">
+                <div className="flex items-start justify-between gap-3 mb-1">
                   <h2
-                    style={{
-                      fontFamily: "'Cormorant', Georgia, serif",
-                      fontStyle: 'italic',
-                      fontWeight: 300,
-                      fontSize: '1.2rem',
-                      color: 'var(--color-primary)',
-                      lineHeight: 1.2,
-                    }}
+                    className="font-display italic font-light text-[1.2rem] text-primary leading-tight"
                   >
                     {habit.name}
                   </h2>
                   {habit.current_phase && (
-                    <span className="eyebrow" style={{ color: 'var(--color-mid)', flexShrink: 0, paddingTop: '3px' }}>
+                    <span className="eyebrow text-mid shrink-0 pt-0.5">
                       {PHASE_LABELS[habit.current_phase]}
                     </span>
                   )}
@@ -185,18 +111,8 @@ export function Dashboard() {
             ))}
 
             {buildHabits.map((habit) => (
-              <div key={habit.id} style={{ ...card, padding: '20px' }}>
-                <h2
-                  style={{
-                    fontFamily: "'Cormorant', Georgia, serif",
-                    fontStyle: 'italic',
-                    fontWeight: 300,
-                    fontSize: '1.2rem',
-                    color: 'var(--color-primary)',
-                    lineHeight: 1.2,
-                    marginBottom: '4px',
-                  }}
-                >
+              <div key={habit.id} className="card p-5">
+                <h2 className="font-display italic font-light text-[1.2rem] text-primary leading-tight mb-1">
                   {habit.name}
                 </h2>
                 <CheckInFormBuild habit={habit} />

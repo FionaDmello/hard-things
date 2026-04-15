@@ -35,68 +35,6 @@ const LEVELS: { value: PracticeLevel; symbol: string; label: string }[] = [
   { value: 'missed',         symbol: '○', label: 'Missed'         },
 ]
 
-// ─── Shared styles ────────────────────────────────────────────────────────────
-
-const inputStyle: React.CSSProperties = {
-  width: '100%',
-  backgroundColor: 'var(--color-canvas)',
-  border: '1px solid var(--color-border)',
-  borderRadius: '0.5rem',
-  padding: '10px 12px',
-  fontFamily: "'DM Sans', system-ui, sans-serif",
-  fontWeight: 300,
-  fontSize: '14px',
-  color: 'var(--color-primary)',
-  outline: 'none',
-  resize: 'none' as const,
-  boxSizing: 'border-box' as const,
-}
-
-const labelStyle: React.CSSProperties = {
-  fontFamily: "'DM Sans', system-ui, sans-serif",
-  fontWeight: 500,
-  fontSize: '11px',
-  letterSpacing: '0.12em',
-  textTransform: 'uppercase' as const,
-  color: 'var(--color-mid)',
-  display: 'block',
-  marginBottom: '8px',
-}
-
-const btnPrimary: React.CSSProperties = {
-  fontFamily: "'DM Sans', system-ui, sans-serif",
-  fontWeight: 500,
-  fontSize: '12px',
-  letterSpacing: '0.12em',
-  textTransform: 'uppercase' as const,
-  color: 'var(--color-accent)',
-  background: 'none',
-  border: 'none',
-  padding: 0,
-  cursor: 'pointer',
-}
-
-const btnSecondary: React.CSSProperties = {
-  fontFamily: "'DM Sans', system-ui, sans-serif",
-  fontWeight: 400,
-  fontSize: '12px',
-  color: 'var(--color-mid)',
-  background: 'none',
-  border: 'none',
-  padding: 0,
-  cursor: 'pointer',
-}
-
-const prompt: React.CSSProperties = {
-  fontFamily: "'Cormorant', Georgia, serif",
-  fontStyle: 'italic',
-  fontWeight: 300,
-  fontSize: '1.1rem',
-  color: 'var(--color-primary)',
-  lineHeight: 1.4,
-  marginBottom: '16px',
-}
-
 // ─── Root ─────────────────────────────────────────────────────────────────────
 
 export function CheckInFormBuild({ habit }: Props) {
@@ -127,24 +65,13 @@ export function CheckInFormBuild({ habit }: Props) {
   if (existing) {
     const level = LEVELS.find((l) => l.value === existing.practice_level)
     return (
-      <div style={{ marginTop: '12px' }}>
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
-          <span style={{
-            fontFamily: "'DM Sans', system-ui, sans-serif",
-            fontWeight: 500,
-            fontSize: '13px',
-            color: existing.practice_level === 'missed' ? 'var(--color-mid)' : 'var(--color-primary)',
-          }}>
+      <div className="mt-3">
+        <div className="flex items-baseline gap-2">
+          <span className={`font-sans font-medium text-[13px] ${existing.practice_level === 'missed' ? 'text-mid' : 'text-primary'}`}>
             {level?.symbol} {level?.label}
           </span>
           {existing.sentence_note && (
-            <span style={{
-              fontFamily: "'Cormorant', Georgia, serif",
-              fontStyle: 'italic',
-              fontWeight: 300,
-              fontSize: '0.95rem',
-              color: 'var(--color-mid)',
-            }}>
+            <span className="font-display italic font-light text-[0.95rem] text-mid">
               — {existing.sentence_note}
             </span>
           )}
@@ -154,23 +81,12 @@ export function CheckInFormBuild({ habit }: Props) {
   }
 
   return (
-    <div style={{ marginTop: '12px' }}>
+    <div className="mt-3">
       {subHabit && (
-        <p style={{
-          fontFamily: "'DM Sans', system-ui, sans-serif",
-          fontWeight: 400,
-          fontSize: '12px',
-          color: 'var(--color-mid)',
-          textTransform: 'capitalize',
-          marginBottom: '8px',
-        }}>
-          {subHabit}
-        </p>
+        <p className="font-sans font-normal text-xs text-mid capitalize mb-2">{subHabit}</p>
       )}
       {!open ? (
-        <button onClick={() => setOpen(true)} style={btnPrimary}>
-          Log today
-        </button>
+        <button className="btn-primary" onClick={() => setOpen(true)}>Log today</button>
       ) : (
         <CheckInForm
           habit={habit}
@@ -212,9 +128,9 @@ function CheckInForm({ habit, userId, today, onSaved, onCancel }: FormProps) {
         date: today,
         section: 'build',
         practice_level: practiceLevel!,
-        resistance_note:   resistanceNote   || null,
+        resistance_note:    resistanceNote   || null,
         helped_or_hindered: helpedOrHindered || null,
-        sentence_note:     sentenceNote     || null,
+        sentence_note:      sentenceNote     || null,
       })
       if (error) throw error
     },
@@ -224,11 +140,13 @@ function CheckInForm({ habit, userId, today, onSaved, onCancel }: FormProps) {
   // ── Step: discernment ──
   if (step === 'discernment') {
     return (
-      <div style={{ marginTop: '12px' }}>
-        <p style={prompt}>{discernmentQuestion}</p>
-        <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-          <button onClick={() => setStep('level')} style={btnPrimary}>Continue</button>
-          <button onClick={onCancel} style={btnSecondary}>Cancel</button>
+      <div className="mt-3">
+        <p className="font-display italic font-light text-[1.1rem] text-primary leading-snug mb-4">
+          {discernmentQuestion}
+        </p>
+        <div className="flex gap-4 items-center">
+          <button className="btn-primary" onClick={() => setStep('level')}>Continue</button>
+          <button className="btn-secondary" onClick={onCancel}>Cancel</button>
         </div>
       </div>
     )
@@ -237,140 +155,109 @@ function CheckInForm({ habit, userId, today, onSaved, onCancel }: FormProps) {
   // ── Step: practice level ──
   if (step === 'level') {
     return (
-      <div style={{ marginTop: '12px' }}>
-        <p style={prompt}>How did it go?</p>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '16px' }}>
+      <div className="mt-3">
+        <p className="font-display italic font-light text-[1.1rem] text-primary leading-snug mb-4">
+          How did it go?
+        </p>
+        <div className="grid grid-cols-2 gap-2 mb-4">
           {LEVELS.map(({ value, symbol, label }) => {
             const selected = practiceLevel === value
             return (
               <button
                 key={value}
                 onClick={() => setPracticeLevel(value)}
-                style={{
-                  padding: '14px 12px',
-                  borderRadius: '0.625rem',
-                  border: `1px solid ${selected ? 'var(--color-accent)' : 'var(--color-border)'}`,
-                  backgroundColor: selected ? 'var(--color-canvas)' : 'transparent',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  cursor: 'pointer',
-                  transition: 'all 150ms ease',
-                  textAlign: 'left' as const,
-                }}
+                className={`py-3.5 px-3 rounded-xl border flex items-center gap-2 cursor-pointer transition-all duration-150 text-left ${
+                  selected ? 'border-accent bg-card' : 'border-border bg-transparent'
+                }`}
               >
-                <span style={{
-                  fontFamily: "'DM Sans', system-ui, sans-serif",
-                  fontSize: '16px',
-                  color: selected ? 'var(--color-primary)' : 'var(--color-mid)',
-                  lineHeight: 1,
-                }}>
+                <span className={`font-sans text-base leading-none ${selected ? 'text-primary' : 'text-mid'}`}>
                   {symbol}
                 </span>
-                <span style={{
-                  fontFamily: "'DM Sans', system-ui, sans-serif",
-                  fontWeight: selected ? 500 : 400,
-                  fontSize: '13px',
-                  color: selected ? 'var(--color-primary)' : 'var(--color-mid)',
-                }}>
+                <span className={`font-sans text-[13px] ${selected ? 'font-medium text-primary' : 'font-normal text-mid'}`}>
                   {label}
                 </span>
               </button>
             )
           })}
         </div>
-        <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+        <div className="flex gap-4 items-center">
           <button
+            className="btn-primary"
             onClick={() => setStep('note')}
             disabled={!practiceLevel}
-            style={{ ...btnPrimary, opacity: practiceLevel ? 1 : 0.35 }}
+            style={{ opacity: practiceLevel ? 1 : 0.35 }}
           >
             Continue
           </button>
-          <button onClick={onCancel} style={btnSecondary}>Cancel</button>
+          <button className="btn-secondary" onClick={onCancel}>Cancel</button>
         </div>
       </div>
     )
   }
 
-  // ── Step: note + optional detail ──
+  // ── Step: note ──
   if (step === 'note') {
     const isMissed = practiceLevel === 'missed'
-
     return (
-      <div style={{ marginTop: '12px' }}>
-
-        {/* Missed — recommitment prompt */}
+      <div className="mt-3">
         {isMissed && (
-          <p style={{
-            fontFamily: "'Cormorant', Georgia, serif",
-            fontStyle: 'italic',
-            fontWeight: 300,
-            fontSize: '1rem',
-            color: 'var(--color-mid)',
-            lineHeight: 1.5,
-            marginBottom: '16px',
-          }}>
+          <p className="font-display italic font-light text-base text-mid leading-snug mb-4">
             What would the minimum version have looked like today?
           </p>
         )}
-
-        {/* One sentence */}
-        <div style={{ marginBottom: '16px' }}>
-          <label style={labelStyle}>One sentence.</label>
+        <div className="mb-4">
+          <label className="label-field">One sentence.</label>
           <input
             type="text"
             value={sentenceNote}
             onChange={(e) => setSentenceNote(e.target.value)}
             autoFocus
-            style={inputStyle}
+            className="input-base"
           />
         </div>
-
-        {/* Optional detail — not shown for missed */}
         {!isMissed && (
-          <div style={{ marginBottom: '16px' }}>
+          <div className="mb-4">
             {!showDetail ? (
               <button
                 onClick={() => setShowDetail(true)}
-                style={{ ...btnSecondary, fontSize: '11px', letterSpacing: '0.08em' }}
+                className="font-sans font-normal text-[11px] tracking-[0.08em] text-mid bg-transparent border-none p-0 cursor-pointer"
               >
                 + Add detail
               </button>
             ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div className="flex flex-col gap-3">
                 <div>
-                  <label style={labelStyle}>What did the resistance feel like? (optional)</label>
+                  <label className="label-field">What did the resistance feel like? (optional)</label>
                   <textarea
                     value={resistanceNote}
                     onChange={(e) => setResistanceNote(e.target.value)}
                     rows={2}
-                    style={inputStyle}
+                    className="input-base"
                   />
                 </div>
                 <div>
-                  <label style={labelStyle}>What helped or got in the way? (optional)</label>
+                  <label className="label-field">What helped or got in the way? (optional)</label>
                   <textarea
                     value={helpedOrHindered}
                     onChange={(e) => setHelpedOrHindered(e.target.value)}
                     rows={2}
-                    style={inputStyle}
+                    className="input-base"
                   />
                 </div>
               </div>
             )}
           </div>
         )}
-
-        <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+        <div className="flex gap-4 items-center">
           <button
+            className="btn-primary"
             onClick={() => save()}
             disabled={isPending}
-            style={{ ...btnPrimary, opacity: isPending ? 0.5 : 1 }}
+            style={{ opacity: isPending ? 0.5 : 1 }}
           >
             {isPending ? 'Saving...' : 'Save'}
           </button>
-          <button onClick={onCancel} style={btnSecondary}>Cancel</button>
+          <button className="btn-secondary" onClick={onCancel}>Cancel</button>
         </div>
       </div>
     )

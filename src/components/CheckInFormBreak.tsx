@@ -16,46 +16,6 @@ function todayISO() {
   return new Date().toISOString().slice(0, 10)
 }
 
-// ─── Shared styles ────────────────────────────────────────────────────────────
-
-const inputStyle: React.CSSProperties = {
-  width: '100%',
-  backgroundColor: 'var(--color-canvas)',
-  border: '1px solid var(--color-border)',
-  borderRadius: '0.5rem',
-  padding: '10px 12px',
-  fontFamily: "'DM Sans', system-ui, sans-serif",
-  fontWeight: 300,
-  fontSize: '14px',
-  color: 'var(--color-primary)',
-  outline: 'none',
-  boxSizing: 'border-box' as const,
-}
-
-const btnPrimary: React.CSSProperties = {
-  fontFamily: "'DM Sans', system-ui, sans-serif",
-  fontWeight: 500,
-  fontSize: '12px',
-  letterSpacing: '0.12em',
-  textTransform: 'uppercase' as const,
-  color: 'var(--color-accent)',
-  background: 'none',
-  border: 'none',
-  padding: 0,
-  cursor: 'pointer',
-}
-
-const btnSecondary: React.CSSProperties = {
-  fontFamily: "'DM Sans', system-ui, sans-serif",
-  fontWeight: 400,
-  fontSize: '12px',
-  color: 'var(--color-mid)',
-  background: 'none',
-  border: 'none',
-  padding: 0,
-  cursor: 'pointer',
-}
-
 // ─── Root ─────────────────────────────────────────────────────────────────────
 
 export function CheckInFormBreak({ habit }: Props) {
@@ -86,24 +46,13 @@ export function CheckInFormBreak({ habit }: Props) {
 
   if (existing) {
     return (
-      <div style={{ marginTop: '12px' }}>
-        <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
-          <span style={{
-            fontFamily: "'DM Sans', system-ui, sans-serif",
-            fontWeight: 500,
-            fontSize: '13px',
-            color: existing.occurred === false ? 'var(--color-primary)' : 'var(--color-mid)',
-          }}>
+      <div className="mt-3">
+        <div className="flex items-baseline gap-2">
+          <span className={`font-sans font-medium text-[13px] ${existing.occurred === false ? 'text-primary' : 'text-mid'}`}>
             {existing.occurred === false ? '● Clean' : '○ Slipped'}
           </span>
           {existing.sentence_note && (
-            <span style={{
-              fontFamily: "'Cormorant', Georgia, serif",
-              fontStyle: 'italic',
-              fontWeight: 300,
-              fontSize: '0.95rem',
-              color: 'var(--color-mid)',
-            }}>
+            <span className="font-display italic font-light text-[0.95rem] text-mid">
               — {existing.sentence_note}
             </span>
           )}
@@ -113,11 +62,9 @@ export function CheckInFormBreak({ habit }: Props) {
   }
 
   return (
-    <div style={{ marginTop: '12px' }}>
+    <div className="mt-3">
       {!open ? (
-        <button onClick={() => setOpen(true)} style={btnPrimary}>
-          Log today
-        </button>
+        <button className="btn-primary" onClick={() => setOpen(true)}>Log today</button>
       ) : (
         <CheckInForm
           habit={habit}
@@ -157,44 +104,37 @@ function CheckInForm({ habit, userId, today, onSaved, onCancel }: FormProps) {
         date: today,
         section: 'break',
         occurred: occurred!,
-        job_if_slipped:    occurred ? jobIfSlipped    || null : null,
-        replacement_note:  occurred ? replacementNote || null : null,
-        urge_intensity:    occurred ? urgeIntensity        : null,
-        sentence_note:     sentenceNote || null,
+        job_if_slipped:   occurred ? jobIfSlipped    || null : null,
+        replacement_note: occurred ? replacementNote || null : null,
+        urge_intensity:   occurred ? urgeIntensity        : null,
+        sentence_note:    sentenceNote || null,
       })
       if (error) throw error
     },
     onSuccess: onSaved,
   })
 
-  const prompt: React.CSSProperties = {
-    fontFamily: "'Cormorant', Georgia, serif",
-    fontStyle: 'italic',
-    fontWeight: 300,
-    fontSize: '1.1rem',
-    color: 'var(--color-primary)',
-    lineHeight: 1.4,
-    marginBottom: '16px',
-  }
-
   const actions = (onNext: () => void, nextLabel = 'Next', canNext = true) => (
-    <div style={{ display: 'flex', gap: '16px', alignItems: 'center', marginTop: '16px' }}>
+    <div className="flex gap-4 items-center mt-4">
       <button
+        className="btn-primary"
         onClick={onNext}
         disabled={!canNext}
-        style={{ ...btnPrimary, opacity: canNext ? 1 : 0.35 }}
+        style={{ opacity: canNext ? 1 : 0.35 }}
       >
         {nextLabel}
       </button>
-      <button onClick={onCancel} style={btnSecondary}>Cancel</button>
+      <button className="btn-secondary" onClick={onCancel}>Cancel</button>
     </div>
   )
 
   // ── Step: discernment ──
   if (step === 'discernment') {
     return (
-      <div style={{ marginTop: '12px' }}>
-        <p style={prompt}>{habit.discernment_question}</p>
+      <div className="mt-3">
+        <p className="font-display italic font-light text-[1.1rem] text-primary leading-snug mb-4">
+          {habit.discernment_question}
+        </p>
         {actions(() => setStep('occurred'))}
       </div>
     )
@@ -203,9 +143,11 @@ function CheckInForm({ habit, userId, today, onSaved, onCancel }: FormProps) {
   // ── Step: occurred ──
   if (step === 'occurred') {
     return (
-      <div style={{ marginTop: '12px' }}>
-        <p style={prompt}>Did it happen today?</p>
-        <div style={{ display: 'flex', gap: '8px' }}>
+      <div className="mt-3">
+        <p className="font-display italic font-light text-[1.1rem] text-primary leading-snug mb-4">
+          Did it happen today?
+        </p>
+        <div className="flex gap-2">
           {[
             { value: false, label: 'Clean' },
             { value: true,  label: 'Slipped' },
@@ -215,19 +157,9 @@ function CheckInForm({ habit, userId, today, onSaved, onCancel }: FormProps) {
               <button
                 key={label}
                 onClick={() => setOccurred(value)}
-                style={{
-                  flex: 1,
-                  padding: '10px',
-                  borderRadius: '0.5rem',
-                  border: `1px solid ${selected ? 'var(--color-accent)' : 'var(--color-border)'}`,
-                  backgroundColor: selected ? 'var(--color-canvas)' : 'transparent',
-                  fontFamily: "'DM Sans', system-ui, sans-serif",
-                  fontWeight: selected ? 500 : 400,
-                  fontSize: '13px',
-                  color: selected ? 'var(--color-primary)' : 'var(--color-mid)',
-                  cursor: 'pointer',
-                  transition: 'all 150ms ease',
-                }}
+                className={`flex-1 py-2.5 rounded-lg border font-sans text-[13px] cursor-pointer transition-all duration-150 ${
+                  selected ? 'border-accent bg-card font-medium text-primary' : 'border-border bg-transparent font-normal text-mid'
+                }`}
               >
                 {label}
               </button>
@@ -246,28 +178,20 @@ function CheckInForm({ habit, userId, today, onSaved, onCancel }: FormProps) {
   // ── Step: driver (slip only) ──
   if (step === 'driver') {
     return (
-      <div style={{ marginTop: '12px' }}>
-        <p style={prompt}>Which job was it doing?</p>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '4px' }}>
+      <div className="mt-3">
+        <p className="font-display italic font-light text-[1.1rem] text-primary leading-snug mb-4">
+          Which job was it doing?
+        </p>
+        <div className="flex flex-wrap gap-2 mb-1">
           {habit.habit_drivers.map((driver) => {
             const selected = jobIfSlipped === driver.key
             return (
               <button
                 key={driver.key}
                 onClick={() => setJobIfSlipped(driver.key)}
-                style={{
-                  padding: '8px 14px',
-                  borderRadius: '2rem',
-                  border: `1px solid ${selected ? 'var(--color-accent)' : 'var(--color-border)'}`,
-                  backgroundColor: selected ? 'var(--color-canvas)' : 'transparent',
-                  fontFamily: "'DM Sans', system-ui, sans-serif",
-                  fontWeight: selected ? 500 : 400,
-                  fontSize: '13px',
-                  color: selected ? 'var(--color-primary)' : 'var(--color-mid)',
-                  cursor: 'pointer',
-                  transition: 'all 150ms ease',
-                  whiteSpace: 'nowrap' as const,
-                }}
+                className={`px-3.5 py-2 rounded-full border font-sans text-[13px] cursor-pointer transition-all duration-150 whitespace-nowrap ${
+                  selected ? 'border-accent bg-card font-medium text-primary' : 'border-border bg-transparent font-normal text-mid'
+                }`}
               >
                 {driver.label}
               </button>
@@ -282,53 +206,33 @@ function CheckInForm({ habit, userId, today, onSaved, onCancel }: FormProps) {
   // ── Step: urge intensity (slip only) ──
   if (step === 'intensity') {
     return (
-      <div style={{ marginTop: '12px' }}>
-        <p style={prompt}>
+      <div className="mt-3">
+        <p className="font-display italic font-light text-[1.1rem] text-primary leading-snug mb-4">
           Urge intensity — {urgeIntensity !== null ? `${urgeIntensity} / 10` : '?'}
         </p>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '6px' }}>
+        <div className="grid grid-cols-5 gap-1.5">
           {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => {
             const selected = urgeIntensity === n
             return (
               <button
                 key={n}
                 onClick={() => setUrgeIntensity(n)}
-                style={{
-                  padding: '10px 0',
-                  borderRadius: '0.5rem',
-                  border: `1px solid ${selected ? 'var(--color-accent)' : 'var(--color-border)'}`,
-                  backgroundColor: selected ? 'var(--color-canvas)' : 'transparent',
-                  fontFamily: "'DM Sans', system-ui, sans-serif",
-                  fontWeight: selected ? 500 : 400,
-                  fontSize: '13px',
-                  color: selected ? 'var(--color-primary)' : 'var(--color-mid)',
-                  cursor: 'pointer',
-                  transition: 'all 150ms ease',
-                }}
+                className={`py-2.5 rounded-lg border font-sans text-[13px] cursor-pointer transition-all duration-150 ${
+                  selected ? 'border-accent bg-card font-medium text-primary' : 'border-border bg-transparent font-normal text-mid'
+                }`}
               >
                 {n}
               </button>
             )
           })}
         </div>
-        <div style={{ marginTop: '12px' }}>
-          <label style={{
-            fontFamily: "'DM Sans', system-ui, sans-serif",
-            fontWeight: 500,
-            fontSize: '11px',
-            letterSpacing: '0.12em',
-            textTransform: 'uppercase',
-            color: 'var(--color-mid)',
-            display: 'block',
-            marginBottom: '8px',
-          }}>
-            What replacement was available? (optional)
-          </label>
+        <div className="mt-3">
+          <label className="label-field">What replacement was available? (optional)</label>
           <input
             type="text"
             value={replacementNote}
             onChange={(e) => setReplacementNote(e.target.value)}
-            style={inputStyle}
+            className="input-base"
           />
         </div>
         {actions(() => setStep('note'))}
@@ -336,27 +240,30 @@ function CheckInForm({ habit, userId, today, onSaved, onCancel }: FormProps) {
     )
   }
 
-  // ── Step: note (final for both paths) ──
+  // ── Step: note ──
   if (step === 'note') {
     return (
-      <div style={{ marginTop: '12px' }}>
-        <p style={prompt}>One sentence.</p>
+      <div className="mt-3">
+        <p className="font-display italic font-light text-[1.1rem] text-primary leading-snug mb-4">
+          One sentence.
+        </p>
         <input
           type="text"
           value={sentenceNote}
           onChange={(e) => setSentenceNote(e.target.value)}
           autoFocus
-          style={inputStyle}
+          className="input-base"
         />
-        <div style={{ display: 'flex', gap: '16px', alignItems: 'center', marginTop: '16px' }}>
+        <div className="flex gap-4 items-center mt-4">
           <button
+            className="btn-primary"
             onClick={() => save()}
             disabled={isPending}
-            style={{ ...btnPrimary, opacity: isPending ? 0.5 : 1 }}
+            style={{ opacity: isPending ? 0.5 : 1 }}
           >
             {isPending ? 'Saving...' : 'Save'}
           </button>
-          <button onClick={onCancel} style={btnSecondary}>Cancel</button>
+          <button className="btn-secondary" onClick={onCancel}>Cancel</button>
         </div>
       </div>
     )

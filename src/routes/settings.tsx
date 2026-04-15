@@ -18,71 +18,28 @@ function Settings() {
   }
 
   return (
-    <div style={{ maxWidth: '32rem', margin: '0 auto', padding: '96px 24px 96px' }}>
+    <div className="max-w-lg mx-auto px-6 pt-24 pb-24">
 
       <Link
         to="/"
-        style={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: '6px',
-          fontFamily: "'DM Sans', system-ui, sans-serif",
-          fontWeight: 400,
-          fontSize: '12px',
-          letterSpacing: '0.12em',
-          textTransform: 'uppercase',
-          color: 'var(--color-mid)',
-          textDecoration: 'none',
-          marginBottom: '40px',
-        }}
+        className="inline-flex items-center gap-1.5 btn-secondary mb-10"
       >
         <span>←</span>
         <span>Today</span>
       </Link>
 
-      <header style={{ marginBottom: '40px' }}>
-        <h1 style={{
-          fontFamily: "'Cormorant', Georgia, serif",
-          fontWeight: 300,
-          fontSize: 'clamp(2.4rem, 8vw, 3.2rem)',
-          color: 'var(--color-primary)',
-          lineHeight: 1.1,
-        }}>
-          Settings
-        </h1>
-        <div style={{ marginTop: '24px', height: '1px', backgroundColor: 'var(--color-border)' }} />
+      <header className="mb-10">
+        <h1 className="display" style={{ fontSize: 'clamp(2.4rem, 8vw, 3.2rem)' }}>Settings</h1>
+        <div className="mt-6 h-px bg-border" />
       </header>
 
-      <div style={{ height: '1px', backgroundColor: 'var(--color-border)', marginBottom: '40px' }} />
+      <div className="h-px bg-border mb-10" />
 
-      <section style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <section className="flex items-center justify-between">
         {user?.email && (
-          <p style={{
-            fontFamily: "'DM Sans', system-ui, sans-serif",
-            fontWeight: 300,
-            fontSize: '12px',
-            color: 'var(--color-mid)',
-          }}>
-            {user.email}
-          </p>
+          <p className="font-sans font-light text-xs text-mid">{user.email}</p>
         )}
-        <button
-          onClick={handleSignOut}
-          style={{
-            fontFamily: "'DM Sans', system-ui, sans-serif",
-            fontWeight: 400,
-            fontSize: '12px',
-            letterSpacing: '0.12em',
-            textTransform: 'uppercase',
-            color: 'var(--color-mid)',
-            background: 'none',
-            border: 'none',
-            padding: 0,
-            cursor: 'pointer',
-          }}
-        >
-          Sign out
-        </button>
+        <button className="btn-secondary" onClick={handleSignOut}>Sign out</button>
       </section>
 
     </div>

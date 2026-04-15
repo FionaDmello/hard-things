@@ -27,61 +27,6 @@ const CLOSING_LINES: Record<ClosingVariant, [string, string]> = {
   build_rest:   ['Logged.', 'Rest without judgment. Return tomorrow.'],
 }
 
-// ─── Shared styles ────────────────────────────────────────────────────────────
-
-const navBtn: React.CSSProperties = {
-  display: 'inline-flex',
-  alignItems: 'center',
-  gap: '6px',
-  fontFamily: "'DM Sans', system-ui, sans-serif",
-  fontWeight: 500,
-  fontSize: '11px',
-  letterSpacing: '0.15em',
-  textTransform: 'uppercase',
-  color: 'var(--color-mid)',
-  background: 'none',
-  border: 'none',
-  padding: 0,
-  cursor: 'pointer',
-}
-
-const textareaStyle: React.CSSProperties = {
-  width: '100%',
-  backgroundColor: 'var(--color-canvas)',
-  border: '1px solid var(--color-border)',
-  borderRadius: '0.5rem',
-  padding: '12px 14px',
-  fontFamily: "'DM Sans', system-ui, sans-serif",
-  fontWeight: 300,
-  fontSize: '14px',
-  color: 'var(--color-primary)',
-  outline: 'none',
-  resize: 'none' as const,
-  boxSizing: 'border-box' as const,
-}
-
-const btnPrimary: React.CSSProperties = {
-  fontFamily: "'DM Sans', system-ui, sans-serif",
-  fontWeight: 500,
-  fontSize: '12px',
-  letterSpacing: '0.12em',
-  textTransform: 'uppercase' as const,
-  color: 'var(--color-accent)',
-  background: 'none',
-  border: 'none',
-  padding: 0,
-  cursor: 'pointer',
-}
-
-const stepPrompt: React.CSSProperties = {
-  fontFamily: "'Cormorant', Georgia, serif",
-  fontStyle: 'italic',
-  fontWeight: 300,
-  fontSize: 'clamp(1.4rem, 4vw, 1.75rem)',
-  color: 'var(--color-primary)',
-  lineHeight: 1.3,
-}
-
 // ─── Overlay ──────────────────────────────────────────────────────────────────
 
 export function CollapseHandler({ habit: initialHabit, onClose, entryAnimation }: Props) {
@@ -112,16 +57,10 @@ export function CollapseHandler({ habit: initialHabit, onClose, entryAnimation }
 
   return (
     <div
-      style={{
-        position: 'fixed',
-        inset: 0,
-        backgroundColor: 'var(--color-canvas)',
-        zIndex: 50,
-        overflowY: 'auto',
-        animation: entryAnimation ?? 'slide-up 320ms cubic-bezier(0.32, 0.72, 0, 1)',
-      }}
+      className="fixed inset-0 bg-canvas z-50 overflow-y-auto"
+      style={{ animation: entryAnimation ?? 'slide-up 320ms cubic-bezier(0.32, 0.72, 0, 1)' }}
     >
-      <div style={{ maxWidth: '430px', margin: '0 auto', padding: '56px 24px 96px' }}>
+      <div className="max-w-[430px] mx-auto px-6 pt-14 pb-24">
         {!selectedHabit ? (
           <HabitPicker habits={allHabits} onSelect={setSelectedHabit} onClose={onClose} />
         ) : selectedHabit.section === 'build' ? (
@@ -142,84 +81,33 @@ function HabitPicker({ habits, onSelect, onClose }: {
   onClose: () => void
 }) {
   return (
-    <div style={{ animation: 'fade-in 250ms ease-out' }}>
-      <button onClick={onClose} style={{ ...navBtn, marginBottom: '40px' }}>
+    <div className="animate-[fade-in_250ms_ease-out]">
+      <button onClick={onClose} className="inline-flex items-center gap-1.5 btn-secondary mb-10">
         <span>←</span><span>Close</span>
       </button>
 
-      <header style={{ marginBottom: '40px' }}>
-        <p style={{
-          fontFamily: "'DM Sans', system-ui, sans-serif",
-          fontWeight: 500,
-          fontSize: '11px',
-          letterSpacing: '0.18em',
-          textTransform: 'uppercase',
-          color: 'var(--color-accent)',
-          marginBottom: '10px',
-        }}>
-          Collapse Handler
-        </p>
-        <h1 style={{
-          fontFamily: "'Cormorant', Georgia, serif",
-          fontStyle: 'italic',
-          fontWeight: 300,
-          fontSize: 'clamp(2.2rem, 7vw, 3rem)',
-          color: 'var(--color-primary)',
-          lineHeight: 1.1,
-          marginBottom: '8px',
-        }}>
+      <header className="mb-10">
+        <p className="eyebrow mb-2.5">Collapse Handler</p>
+        <h1 className="font-display italic font-light text-primary leading-tight mb-2" style={{ fontSize: 'clamp(2.2rem, 7vw, 3rem)' }}>
           Something slipped.
         </h1>
-        <p style={{
-          fontFamily: "'DM Sans', system-ui, sans-serif",
-          fontWeight: 300,
-          fontSize: '13px',
-          color: 'var(--color-mid)',
-        }}>
-          Which habit?
-        </p>
+        <p className="font-sans font-light text-[13px] text-mid">Which habit?</p>
       </header>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+      <div className="flex flex-col gap-2">
         {habits.map((habit) => (
           <button
             key={habit.id}
             onClick={() => onSelect(habit)}
-            style={{
-              width: '100%',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              padding: '20px',
-              backgroundColor: 'var(--color-card)',
-              border: '1px solid var(--color-border)',
-              borderRadius: '0.75rem',
-              cursor: 'pointer',
-              textAlign: 'left',
-            }}
+            className="card w-full flex items-center justify-between p-5 cursor-pointer text-left bg-transparent border-none"
           >
             <div>
-              <p style={{
-                fontFamily: "'DM Sans', system-ui, sans-serif",
-                fontWeight: 500,
-                fontSize: '15px',
-                color: 'var(--color-primary)',
-              }}>
-                {habit.name}
-              </p>
-              <p style={{
-                fontFamily: "'DM Sans', system-ui, sans-serif",
-                fontWeight: 500,
-                fontSize: '10px',
-                letterSpacing: '0.15em',
-                textTransform: 'uppercase',
-                color: 'var(--color-mid)',
-                marginTop: '3px',
-              }}>
+              <p className="font-sans font-medium text-[15px] text-primary">{habit.name}</p>
+              <p className="font-sans font-medium text-[10px] tracking-[0.15em] uppercase text-mid mt-0.5">
                 {habit.section === 'break' ? 'Break' : 'Build'}
               </p>
             </div>
-            <span style={{ color: 'var(--color-mid)', fontSize: '14px', opacity: 0.5 }}>→</span>
+            <span className="text-mid text-sm opacity-50">→</span>
           </button>
         ))}
       </div>
@@ -235,39 +123,21 @@ function EntryScreen({ habitName, onContinue, onClose }: {
   onClose: () => void
 }) {
   return (
-    <div style={{ animation: 'fade-in 300ms ease-out' }}>
-      <button onClick={onClose} style={{ ...navBtn, marginBottom: '40px' }}>
+    <div className="animate-[fade-in_300ms_ease-out]">
+      <button onClick={onClose} className="inline-flex items-center gap-1.5 btn-secondary mb-10">
         <span>←</span><span>Close</span>
       </button>
 
-      <div style={{ display: 'flex', flexDirection: 'column', minHeight: '55vh', justifyContent: 'center' }}>
-        <p style={{
-          fontFamily: "'DM Sans', system-ui, sans-serif",
-          fontWeight: 500,
-          fontSize: '11px',
-          letterSpacing: '0.18em',
-          textTransform: 'uppercase',
-          color: 'var(--color-mid)',
-          marginBottom: '24px',
-        }}>
+      <div className="flex flex-col min-h-[55vh] justify-center">
+        <p className="font-sans font-medium text-[11px] tracking-[0.18em] uppercase text-mid mb-6">
           {habitName}
         </p>
-        <h1 style={{
-          fontFamily: "'Cormorant', Georgia, serif",
-          fontStyle: 'italic',
-          fontWeight: 300,
-          fontSize: 'clamp(2rem, 7vw, 2.8rem)',
-          color: 'var(--color-primary)',
-          lineHeight: 1.2,
-          marginBottom: '40px',
-        }}>
+        <h1 className="font-display italic font-light text-primary leading-snug mb-10" style={{ fontSize: 'clamp(2rem, 7vw, 2.8rem)' }}>
           It happened.<br />
           You opened this.<br />
           That's already the turn.
         </h1>
-        <button onClick={onContinue} style={btnPrimary}>
-          Continue →
-        </button>
+        <button className="btn-primary self-start" onClick={onContinue}>Continue →</button>
       </div>
     </div>
   )
@@ -292,36 +162,21 @@ function StepHeader({ habitName, stepLabel, onBack, onClose }: {
   onClose: () => void
 }) {
   return (
-    <div style={{ marginBottom: '40px' }}>
+    <div className="mb-10">
       <button
         onClick={onBack ?? onClose}
-        style={{ ...navBtn, marginBottom: '32px' }}
+        className="inline-flex items-center gap-1.5 btn-secondary mb-8"
       >
         <span>←</span>
         <span>{onBack ? 'Back' : 'Close'}</span>
       </button>
-      <p style={{
-        fontFamily: "'DM Sans', system-ui, sans-serif",
-        fontWeight: 500,
-        fontSize: '11px',
-        letterSpacing: '0.18em',
-        textTransform: 'uppercase',
-        color: 'var(--color-mid)',
-        marginBottom: '4px',
-      }}>
+      <p className="font-sans font-medium text-[11px] tracking-[0.18em] uppercase text-mid mb-1">
         {habitName}
       </p>
-      <p style={{
-        fontFamily: "'DM Sans', system-ui, sans-serif",
-        fontWeight: 400,
-        fontSize: '11px',
-        color: 'var(--color-mid)',
-        opacity: 0.6,
-        marginBottom: '16px',
-      }}>
+      <p className="font-sans font-normal text-[11px] text-mid opacity-60 mb-4">
         {stepLabel}
       </p>
-      <div style={{ height: '1px', backgroundColor: 'var(--color-border)' }} />
+      <div className="h-px bg-border" />
     </div>
   )
 }
@@ -343,37 +198,18 @@ function ClosingScreen({ variant, onClose }: { variant: ClosingVariant; onClose:
   return (
     <div
       onClick={onClose}
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        minHeight: '60vh',
-        justifyContent: 'center',
-        cursor: 'pointer',
-        animation: 'fade-in 300ms ease-out',
-      }}
+      className="flex flex-col min-h-[60vh] justify-center cursor-pointer animate-[fade-in_300ms_ease-out]"
     >
-      <p style={{
-        fontFamily: "'Cormorant', Georgia, serif",
-        fontStyle: 'italic',
-        fontWeight: 300,
-        fontSize: 'clamp(1.8rem, 5vw, 2.4rem)',
-        color: 'var(--color-primary)',
-        lineHeight: 1.2,
-        marginBottom: '20px',
-        animation: 'fade-in 300ms ease-out',
-      }}>
+      <p
+        className="font-display italic font-light text-primary leading-snug mb-5 animate-[fade-in_300ms_ease-out]"
+        style={{ fontSize: 'clamp(1.8rem, 5vw, 2.4rem)' }}
+      >
         {line1}
       </p>
-      <p style={{
-        fontFamily: "'Cormorant', Georgia, serif",
-        fontStyle: 'italic',
-        fontWeight: 300,
-        fontSize: 'clamp(1.1rem, 3.5vw, 1.5rem)',
-        color: 'var(--color-mid)',
-        lineHeight: 1.5,
-        opacity: showLine2 ? 1 : 0,
-        transition: 'opacity 500ms ease-out',
-      }}>
+      <p
+        className="font-display italic font-light text-mid leading-snug transition-opacity duration-500"
+        style={{ fontSize: 'clamp(1.1rem, 3.5vw, 1.5rem)', opacity: showLine2 ? 1 : 0 }}
+      >
         {line2}
       </p>
     </div>
@@ -420,15 +256,11 @@ function BreakCollapseFlow({ habit, userId, onClose }: {
       {step === 1 && (
         <div>
           <StepHeader habitName={habit.name} stepLabel="1 of 3" onClose={onClose} />
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            <p style={stepPrompt}>What happened?</p>
-            <p style={{
-              fontFamily: "'DM Sans', system-ui, sans-serif",
-              fontWeight: 300,
-              fontSize: '13px',
-              color: 'var(--color-mid)',
-              fontStyle: 'italic',
-            }}>
+          <div className="flex flex-col gap-5">
+            <p className="font-display italic font-light text-primary leading-snug" style={{ fontSize: 'clamp(1.4rem, 4vw, 1.75rem)' }}>
+              What happened?
+            </p>
+            <p className="font-sans font-light text-[13px] text-mid italic">
               Just the facts — no interpretation needed.
             </p>
             <textarea
@@ -436,12 +268,13 @@ function BreakCollapseFlow({ habit, userId, onClose }: {
               onChange={(e) => setWhatHappened(e.target.value)}
               rows={4}
               autoFocus
-              style={textareaStyle}
+              className="input-base"
             />
             <button
+              className="btn-primary self-start"
               onClick={() => go(2)}
               disabled={!whatHappened.trim()}
-              style={{ ...btnPrimary, opacity: whatHappened.trim() ? 1 : 0.35, alignSelf: 'flex-start' }}
+              style={{ opacity: whatHappened.trim() ? 1 : 0.35 }}
             >
               Continue →
             </button>
@@ -452,40 +285,27 @@ function BreakCollapseFlow({ habit, userId, onClose }: {
       {step === 2 && (
         <div>
           <StepHeader habitName={habit.name} stepLabel="2 of 3" onBack={() => back(1)} onClose={onClose} />
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            <p style={stepPrompt}>Which job was it doing?</p>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+          <div className="flex flex-col gap-5">
+            <p className="font-display italic font-light text-primary leading-snug" style={{ fontSize: 'clamp(1.4rem, 4vw, 1.75rem)' }}>
+              Which job was it doing?
+            </p>
+            <div className="flex flex-wrap gap-2">
               {habit.habit_drivers.map((driver) => {
                 const selected = jobIfBreak === driver.key
                 return (
                   <button
                     key={driver.key}
                     onClick={() => setJobIfBreak(driver.key)}
-                    style={{
-                      padding: '8px 14px',
-                      borderRadius: '2rem',
-                      border: `1px solid ${selected ? 'var(--color-accent)' : 'var(--color-border)'}`,
-                      backgroundColor: selected ? 'var(--color-canvas)' : 'transparent',
-                      fontFamily: "'DM Sans', system-ui, sans-serif",
-                      fontWeight: selected ? 500 : 400,
-                      fontSize: '13px',
-                      color: selected ? 'var(--color-primary)' : 'var(--color-mid)',
-                      cursor: 'pointer',
-                      transition: 'all 150ms ease',
-                      whiteSpace: 'nowrap' as const,
-                    }}
+                    className={`px-3.5 py-2 rounded-full border font-sans text-[13px] cursor-pointer transition-all duration-150 whitespace-nowrap ${
+                      selected ? 'border-accent bg-canvas font-medium text-primary' : 'border-border bg-transparent font-normal text-mid'
+                    }`}
                   >
                     {driver.label}
                   </button>
                 )
               })}
             </div>
-            <button
-              onClick={() => go(3)}
-              style={{ ...btnPrimary, alignSelf: 'flex-start' }}
-            >
-              Continue →
-            </button>
+            <button className="btn-primary self-start" onClick={() => go(3)}>Continue →</button>
           </div>
         </div>
       )}
@@ -493,28 +313,23 @@ function BreakCollapseFlow({ habit, userId, onClose }: {
       {step === 3 && (
         <div>
           <StepHeader habitName={habit.name} stepLabel="3 of 3" onBack={() => back(2)} onClose={onClose} />
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            <p style={stepPrompt}>What wasn't available or didn't land?</p>
-            <p style={{
-              fontFamily: "'DM Sans', system-ui, sans-serif",
-              fontWeight: 300,
-              fontSize: '13px',
-              color: 'var(--color-mid)',
-              fontStyle: 'italic',
-            }}>
-              Optional.
+          <div className="flex flex-col gap-5">
+            <p className="font-display italic font-light text-primary leading-snug" style={{ fontSize: 'clamp(1.4rem, 4vw, 1.75rem)' }}>
+              What wasn't available or didn't land?
             </p>
+            <p className="font-sans font-light text-[13px] text-mid italic">Optional.</p>
             <textarea
               value={replacementUnavailable}
               onChange={(e) => setReplacementUnavailable(e.target.value)}
               rows={3}
               autoFocus
-              style={textareaStyle}
+              className="input-base"
             />
             <button
+              className="btn-primary self-start"
               onClick={() => save()}
               disabled={isPending}
-              style={{ ...btnPrimary, opacity: isPending ? 0.5 : 1, alignSelf: 'flex-start' }}
+              style={{ opacity: isPending ? 0.5 : 1 }}
             >
               {isPending ? 'Saving...' : 'Done →'}
             </button>
@@ -585,15 +400,11 @@ function BuildCollapseFlow({ habit, userId, onClose }: {
       {step === 1 && (
         <div>
           <StepHeader habitName={habit.name} stepLabel="1 of 3" onClose={onClose} />
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            <p style={stepPrompt}>What happened?</p>
-            <p style={{
-              fontFamily: "'DM Sans', system-ui, sans-serif",
-              fontWeight: 300,
-              fontSize: '13px',
-              color: 'var(--color-mid)',
-              fontStyle: 'italic',
-            }}>
+          <div className="flex flex-col gap-5">
+            <p className="font-display italic font-light text-primary leading-snug" style={{ fontSize: 'clamp(1.4rem, 4vw, 1.75rem)' }}>
+              What happened?
+            </p>
+            <p className="font-sans font-light text-[13px] text-mid italic">
               Just the facts — no interpretation needed.
             </p>
             <textarea
@@ -601,12 +412,13 @@ function BuildCollapseFlow({ habit, userId, onClose }: {
               onChange={(e) => setWhatHappened(e.target.value)}
               rows={4}
               autoFocus
-              style={textareaStyle}
+              className="input-base"
             />
             <button
+              className="btn-primary self-start"
               onClick={() => go(2)}
               disabled={!whatHappened.trim()}
-              style={{ ...btnPrimary, opacity: whatHappened.trim() ? 1 : 0.35, alignSelf: 'flex-start' }}
+              style={{ opacity: whatHappened.trim() ? 1 : 0.35 }}
             >
               Continue →
             </button>
@@ -617,29 +429,20 @@ function BuildCollapseFlow({ habit, userId, onClose }: {
       {step === 2 && (
         <div>
           <StepHeader habitName={habit.name} stepLabel="2 of 3" onBack={() => back(1)} onClose={onClose} />
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            <p style={stepPrompt}>What gave way?</p>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <div className="flex flex-col gap-5">
+            <p className="font-display italic font-light text-primary leading-snug" style={{ fontSize: 'clamp(1.4rem, 4vw, 1.75rem)' }}>
+              What gave way?
+            </p>
+            <div className="flex flex-col gap-2">
               {WHAT_GAVE_WAY_OPTIONS.map((option) => {
                 const selected = whatGaveWay === option
                 return (
                   <button
                     key={option}
                     onClick={() => setWhatGaveWay(option)}
-                    style={{
-                      width: '100%',
-                      padding: '14px 16px',
-                      borderRadius: '0.625rem',
-                      border: `1px solid ${selected ? 'var(--color-accent)' : 'var(--color-border)'}`,
-                      backgroundColor: selected ? 'var(--color-canvas)' : 'transparent',
-                      fontFamily: "'DM Sans', system-ui, sans-serif",
-                      fontWeight: selected ? 500 : 400,
-                      fontSize: '14px',
-                      color: selected ? 'var(--color-primary)' : 'var(--color-mid)',
-                      cursor: 'pointer',
-                      transition: 'all 150ms ease',
-                      textAlign: 'left' as const,
-                    }}
+                    className={`w-full py-3.5 px-4 rounded-xl border font-sans text-sm cursor-pointer transition-all duration-150 text-left ${
+                      selected ? 'border-accent bg-canvas font-medium text-primary' : 'border-border bg-transparent font-normal text-mid'
+                    }`}
                   >
                     {option}
                   </button>
@@ -647,9 +450,10 @@ function BuildCollapseFlow({ habit, userId, onClose }: {
               })}
             </div>
             <button
+              className="btn-primary self-start"
               onClick={() => go(3)}
               disabled={!whatGaveWay}
-              style={{ ...btnPrimary, opacity: whatGaveWay ? 1 : 0.35, alignSelf: 'flex-start' }}
+              style={{ opacity: whatGaveWay ? 1 : 0.35 }}
             >
               Continue →
             </button>
@@ -660,80 +464,35 @@ function BuildCollapseFlow({ habit, userId, onClose }: {
       {step === 3 && (
         <div>
           <StepHeader habitName={habit.name} stepLabel="3 of 3" onBack={() => back(2)} onClose={onClose} />
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            <p style={stepPrompt}>Return at the minimum.</p>
+          <div className="flex flex-col gap-5">
+            <p className="font-display italic font-light text-primary leading-snug" style={{ fontSize: 'clamp(1.4rem, 4vw, 1.75rem)' }}>
+              Return at the minimum.
+            </p>
             {nonNegotiable && (
-              <div style={{
-                paddingLeft: '16px',
-                borderLeft: '2px solid var(--color-accent)',
-                animation: 'fade-in 300ms ease-out 100ms both',
-              }}>
-                <p style={{
-                  fontFamily: "'DM Sans', system-ui, sans-serif",
-                  fontWeight: 500,
-                  fontSize: '11px',
-                  letterSpacing: '0.12em',
-                  textTransform: 'uppercase',
-                  color: 'var(--color-mid)',
-                  marginBottom: '6px',
-                }}>
+              <div className="pl-4 border-l-2 border-accent animate-[fade-in_300ms_ease-out_100ms_both]">
+                <p className="font-sans font-medium text-[11px] tracking-[0.12em] uppercase text-mid mb-1.5">
                   The non-negotiable version
                 </p>
-                <p style={{
-                  fontFamily: "'DM Sans', system-ui, sans-serif",
-                  fontWeight: 300,
-                  fontSize: '14px',
-                  color: 'var(--color-primary)',
-                  lineHeight: 1.6,
-                }}>
+                <p className="font-sans font-light text-sm text-primary leading-relaxed">
                   {nonNegotiable}
                 </p>
               </div>
             )}
-            <p style={{
-              fontFamily: "'DM Sans', system-ui, sans-serif",
-              fontWeight: 300,
-              fontSize: '13px',
-              color: 'var(--color-mid)',
-            }}>
-              Can you do this today?
-            </p>
-            <div style={{ display: 'flex', gap: '12px' }}>
+            <p className="font-sans font-light text-[13px] text-mid">Can you do this today?</p>
+            <div className="flex gap-3">
               <button
                 onClick={() => save(true)}
                 disabled={isPending}
-                style={{
-                  flex: 1,
-                  padding: '14px',
-                  borderRadius: '0.625rem',
-                  backgroundColor: 'var(--color-card)',
-                  border: '1px solid var(--color-accent)',
-                  fontFamily: "'DM Sans', system-ui, sans-serif",
-                  fontWeight: 500,
-                  fontSize: '13px',
-                  color: 'var(--color-accent)',
-                  cursor: 'pointer',
-                  opacity: isPending ? 0.5 : 1,
-                }}
+                className="flex-1 py-3.5 rounded-xl bg-card border border-accent font-sans font-medium text-[13px] text-accent cursor-pointer"
+                style={{ opacity: isPending ? 0.5 : 1 }}
               >
                 Yes
               </button>
               <button
                 onClick={() => save(false)}
                 disabled={isPending}
-                style={{
-                  flex: 1,
-                  padding: '14px',
-                  borderRadius: '0.625rem',
-                  backgroundColor: 'transparent',
-                  border: '1px solid var(--color-border)',
-                  fontFamily: "'DM Sans', system-ui, sans-serif",
-                  fontWeight: 400,
-                  fontSize: '13px',
-                  color: 'var(--color-mid)',
-                  cursor: 'pointer',
-                  opacity: isPending ? 0.5 : 1,
-                }}
+                className="flex-1 py-3.5 rounded-xl bg-transparent border border-border font-sans font-normal text-[13px] text-mid cursor-pointer"
+                style={{ opacity: isPending ? 0.5 : 1 }}
               >
                 Not today
               </button>

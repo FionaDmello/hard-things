@@ -27,66 +27,7 @@ const STEPS = [
   { key: 'carrying_forward', prompt: 'What am I carrying into next week?' },
 ]
 
-// ─── Shared styles ────────────────────────────────────────────────────────────
-
-const card: React.CSSProperties = {
-  backgroundColor: 'var(--color-card)',
-  border: '1px solid var(--color-border)',
-  borderRadius: '0.75rem',
-  padding: '20px',
-}
-
-const inputStyle: React.CSSProperties = {
-  width: '100%',
-  backgroundColor: 'var(--color-canvas)',
-  border: '1px solid var(--color-border)',
-  borderRadius: '0.5rem',
-  padding: '10px 12px',
-  fontFamily: "'DM Sans', system-ui, sans-serif",
-  fontWeight: 300,
-  fontSize: '14px',
-  color: 'var(--color-primary)',
-  outline: 'none',
-  resize: 'none' as const,
-  boxSizing: 'border-box' as const,
-}
-
-const labelStyle: React.CSSProperties = {
-  fontFamily: "'DM Sans', system-ui, sans-serif",
-  fontWeight: 500,
-  fontSize: '11px',
-  letterSpacing: '0.12em',
-  textTransform: 'uppercase' as const,
-  color: 'var(--color-mid)',
-  display: 'block',
-  marginBottom: '8px',
-}
-
-const btnPrimary: React.CSSProperties = {
-  fontFamily: "'DM Sans', system-ui, sans-serif",
-  fontWeight: 500,
-  fontSize: '12px',
-  letterSpacing: '0.12em',
-  textTransform: 'uppercase',
-  color: 'var(--color-accent)',
-  background: 'none',
-  border: 'none',
-  padding: 0,
-  cursor: 'pointer',
-}
-
-const btnSecondary: React.CSSProperties = {
-  fontFamily: "'DM Sans', system-ui, sans-serif",
-  fontWeight: 400,
-  fontSize: '12px',
-  color: 'var(--color-mid)',
-  background: 'none',
-  border: 'none',
-  padding: 0,
-  cursor: 'pointer',
-}
-
-// ─── Root component ───────────────────────────────────────────────────────────
+// ─── Root ─────────────────────────────────────────────────────────────────────
 
 export function WeeklyReview() {
   const [open, setOpen] = useState(false)
@@ -124,62 +65,35 @@ export function WeeklyReview() {
     enabled: !!user && showHistory,
   })
 
-  // This week completed
   if (thisWeek && !open) {
     return (
       <div>
-        <div style={card}>
-          <p className="eyebrow" style={{ marginBottom: '12px' }}>
-            Week of {formatWeekLabel(weekStart)}
-          </p>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '16px' }}>
+        <div className="card p-5">
+          <p className="eyebrow mb-3">Week of {formatWeekLabel(weekStart)}</p>
+          <div className="flex flex-col gap-1.5 mb-4">
             {thisWeek.sentence_practiced && (
-              <p style={{
-                fontFamily: "'Cormorant', Georgia, serif",
-                fontStyle: 'italic',
-                fontWeight: 300,
-                fontSize: '1.05rem',
-                color: 'var(--color-primary)',
-                lineHeight: 1.5,
-              }}>
+              <p className="font-display italic font-light text-[1.05rem] text-primary leading-snug">
                 "{thisWeek.sentence_practiced}"
               </p>
             )}
             {thisWeek.sentence_hard && (
-              <p style={{
-                fontFamily: "'Cormorant', Georgia, serif",
-                fontStyle: 'italic',
-                fontWeight: 300,
-                fontSize: '1.05rem',
-                color: 'var(--color-mid)',
-                lineHeight: 1.5,
-              }}>
+              <p className="font-display italic font-light text-[1.05rem] text-mid leading-snug">
                 "{thisWeek.sentence_hard}"
               </p>
             )}
             {thisWeek.sentence_carrying && (
-              <p style={{
-                fontFamily: "'Cormorant', Georgia, serif",
-                fontStyle: 'italic',
-                fontWeight: 300,
-                fontSize: '1.05rem',
-                color: 'var(--color-mid)',
-                lineHeight: 1.5,
-              }}>
+              <p className="font-display italic font-light text-[1.05rem] text-mid leading-snug">
                 "{thisWeek.sentence_carrying}"
               </p>
             )}
           </div>
-          <button
-            onClick={() => setShowHistory((s) => !s)}
-            style={btnSecondary}
-          >
+          <button className="btn-secondary" onClick={() => setShowHistory((s) => !s)}>
             {showHistory ? 'Hide past reviews' : 'Past reviews'}
           </button>
         </div>
 
         {showHistory && history && history.length > 0 && (
-          <div style={{ marginTop: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <div className="mt-3 flex flex-col gap-2">
             {history.filter(r => r.id !== thisWeek.id).map((review) => (
               <ReviewEntry key={review.id} review={review} />
             ))}
@@ -189,31 +103,19 @@ export function WeeklyReview() {
     )
   }
 
-  // Not yet written
   return (
     <div>
       {!open ? (
-        <div style={card}>
-          <p style={{
-            fontFamily: "'Cormorant', Georgia, serif",
-            fontStyle: 'italic',
-            fontWeight: 300,
-            fontSize: '1.05rem',
-            color: 'var(--color-mid)',
-            marginBottom: '16px',
-          }}>
+        <div className="card p-5">
+          <p className="font-display italic font-light text-[1.05rem] text-mid mb-4">
             {isSunday
               ? 'Today is Sunday. A good time to close the week.'
               : `Week of ${formatWeekLabel(weekStart)}.`}
           </p>
-          <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-            <button onClick={() => setOpen(true)} style={btnPrimary}>
-              {isSunday ? 'Write review' : 'Write review'}
-            </button>
+          <div className="flex gap-4 items-center">
+            <button className="btn-primary" onClick={() => setOpen(true)}>Write review</button>
             {!showHistory && (
-              <button onClick={() => setShowHistory(true)} style={btnSecondary}>
-                Past reviews
-              </button>
+              <button className="btn-secondary" onClick={() => setShowHistory(true)}>Past reviews</button>
             )}
           </div>
         </div>
@@ -231,7 +133,7 @@ export function WeeklyReview() {
       )}
 
       {showHistory && history && history.length > 0 && (
-        <div style={{ marginTop: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        <div className="mt-3 flex flex-col gap-2">
           {history.map((review) => (
             <ReviewEntry key={review.id} review={review} />
           ))}
@@ -267,12 +169,12 @@ function ReviewForm({ userId, weekStart, onSaved, onCancel }: FormProps) {
       const { error } = await supabase.from('weekly_reviews').insert({
         user_id: userId,
         week_start_date: weekStart,
-        what_i_did:          answers.what_i_did          || null,
-        what_got_in_way:     answers.what_got_in_way     || null,
-        carrying_forward:    answers.carrying_forward    || null,
-        sentence_practiced:  answers.sentence_practiced  || null,
-        sentence_hard:       answers.sentence_hard       || null,
-        sentence_carrying:   answers.sentence_carrying   || null,
+        what_i_did:         answers.what_i_did         || null,
+        what_got_in_way:    answers.what_got_in_way    || null,
+        carrying_forward:   answers.carrying_forward   || null,
+        sentence_practiced: answers.sentence_practiced || null,
+        sentence_hard:      answers.sentence_hard      || null,
+        sentence_carrying:  answers.sentence_carrying  || null,
       })
       if (error) throw error
     },
@@ -283,24 +185,13 @@ function ReviewForm({ userId, weekStart, onSaved, onCancel }: FormProps) {
     setAnswers((a) => ({ ...a, [key]: value }))
   }
 
-  // Reflection steps
   if (stepIndex < STEPS.length) {
     const step = STEPS[stepIndex]
     const isLast = stepIndex === STEPS.length - 1
     return (
-      <div style={card}>
-        <p className="eyebrow" style={{ marginBottom: '16px' }}>
-          Reflection {stepIndex + 1} of {STEPS.length}
-        </p>
-        <p style={{
-          fontFamily: "'Cormorant', Georgia, serif",
-          fontStyle: 'italic',
-          fontWeight: 300,
-          fontSize: '1.15rem',
-          color: 'var(--color-primary)',
-          marginBottom: '16px',
-          lineHeight: 1.4,
-        }}>
+      <div className="card p-5">
+        <p className="eyebrow mb-4">Reflection {stepIndex + 1} of {STEPS.length}</p>
+        <p className="font-display italic font-light text-[1.15rem] text-primary leading-snug mb-4">
           {step.prompt}
         </p>
         <textarea
@@ -308,99 +199,83 @@ function ReviewForm({ userId, weekStart, onSaved, onCancel }: FormProps) {
           onChange={(e) => setAnswer(step.key, e.target.value)}
           rows={4}
           autoFocus
-          style={{ ...inputStyle, marginBottom: '16px' }}
+          className="input-base mb-4"
         />
-        <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+        <div className="flex gap-4 items-center">
           <button
+            className="btn-primary"
             onClick={() => {
               if (isLast) setShowSentences(true)
               setStepIndex((i) => i + 1)
             }}
-            style={btnPrimary}
           >
             {isLast ? 'Continue' : 'Next'}
           </button>
-          <button onClick={onCancel} style={btnSecondary}>Cancel</button>
+          <button className="btn-secondary" onClick={onCancel}>Cancel</button>
         </div>
       </div>
     )
   }
 
-  // Transition
   if (!showSentences) {
     return (
-      <div style={card}>
-        <p style={{
-          fontFamily: "'Cormorant', Georgia, serif",
-          fontStyle: 'italic',
-          fontWeight: 300,
-          fontSize: '1.15rem',
-          color: 'var(--color-primary)',
-          marginBottom: '8px',
-        }}>
+      <div className="card p-5">
+        <p className="font-display italic font-light text-[1.15rem] text-primary mb-2">
           Now distill it into three sentences.
         </p>
-        <p style={{
-          fontFamily: "'DM Sans', system-ui, sans-serif",
-          fontWeight: 300,
-          fontSize: '13px',
-          color: 'var(--color-mid)',
-          marginBottom: '20px',
-        }}>
+        <p className="font-sans font-light text-[13px] text-mid mb-5">
           These stay with you as a summary of the week.
         </p>
-        <div style={{ display: 'flex', gap: '16px' }}>
-          <button onClick={() => setShowSentences(true)} style={btnPrimary}>Continue</button>
-          <button onClick={onCancel} style={btnSecondary}>Cancel</button>
+        <div className="flex gap-4">
+          <button className="btn-primary" onClick={() => setShowSentences(true)}>Continue</button>
+          <button className="btn-secondary" onClick={onCancel}>Cancel</button>
         </div>
       </div>
     )
   }
 
-  // Three sentences
   return (
-    <div style={card}>
-      <p className="eyebrow" style={{ marginBottom: '20px' }}>Three sentences</p>
-
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '20px' }}>
+    <div className="card p-5">
+      <p className="eyebrow mb-5">Three sentences</p>
+      <div className="flex flex-col gap-4 mb-5">
         <div>
-          <label style={labelStyle}>What I practised this week.</label>
+          <label className="label-field">What I practised this week.</label>
           <input
             type="text"
             value={answers.sentence_practiced}
             onChange={(e) => setAnswer('sentence_practiced', e.target.value)}
-            style={inputStyle}
+            className="input-base"
           />
         </div>
         <div>
-          <label style={labelStyle}>What was hard.</label>
+          <label className="label-field">What was hard.</label>
           <input
             type="text"
             value={answers.sentence_hard}
             onChange={(e) => setAnswer('sentence_hard', e.target.value)}
-            style={inputStyle}
+            className="input-base"
           />
         </div>
         <div>
-          <label style={labelStyle}>What I am carrying forward.</label>
+          <label className="label-field">What I am carrying forward.</label>
           <input
             type="text"
             value={answers.sentence_carrying}
             onChange={(e) => setAnswer('sentence_carrying', e.target.value)}
-            style={inputStyle}
+            className="input-base"
           />
         </div>
       </div>
-
-      <div style={{ display: 'flex', gap: '16px' }}>
+      <div className="flex gap-4">
         <button
+          className="btn-primary"
           onClick={() => save()}
           disabled={isPending}
-          style={{ ...btnPrimary, opacity: isPending ? 0.5 : 1 }}
+          style={{ opacity: isPending ? 0.5 : 1 }}
         >
           {isPending ? 'Saving...' : 'Save'}
         </button>
-        <button onClick={onCancel} style={btnSecondary}>Cancel</button>
+        <button className="btn-secondary" onClick={onCancel}>Cancel</button>
       </div>
     </div>
   )
@@ -412,131 +287,56 @@ function ReviewEntry({ review }: { review: WeeklyReview }) {
   const [open, setOpen] = useState(false)
 
   return (
-    <div style={{
-      backgroundColor: 'var(--color-card)',
-      border: '1px solid var(--color-border)',
-      borderRadius: '0.75rem',
-      overflow: 'hidden',
-    }}>
+    <div className="card overflow-hidden">
       <button
         onClick={() => setOpen((o) => !o)}
-        style={{
-          width: '100%',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          padding: '16px 20px',
-          background: 'none',
-          border: 'none',
-          cursor: 'pointer',
-          textAlign: 'left',
-        }}
+        className="w-full flex justify-between items-center px-5 py-4 bg-transparent border-none cursor-pointer text-left"
       >
-        <span style={{
-          fontFamily: "'DM Sans', system-ui, sans-serif",
-          fontWeight: 400,
-          fontSize: '13px',
-          color: 'var(--color-primary)',
-        }}>
+        <span className="font-sans font-normal text-[13px] text-primary">
           Week of {formatWeekLabel(review.week_start_date)}
         </span>
-        <span style={{
-          fontFamily: "'DM Sans', system-ui, sans-serif",
-          fontSize: '12px',
-          color: 'var(--color-mid)',
-          transition: 'transform 200ms ease',
-          display: 'inline-block',
-          transform: open ? 'rotate(45deg)' : 'rotate(0deg)',
-        }}>
+        <span
+          className="font-sans text-xs text-mid inline-block transition-transform duration-200"
+          style={{ transform: open ? 'rotate(45deg)' : 'rotate(0deg)' }}
+        >
           +
         </span>
       </button>
 
       {open && (
-        <div style={{ padding: '0 20px 20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        <div className="px-5 pb-5 flex flex-col gap-3">
           {review.what_i_did && (
             <div>
-              <p style={{ ...labelStyle, marginBottom: '4px' }}>What I actually did</p>
-              <p style={{
-                fontFamily: "'DM Sans', system-ui, sans-serif",
-                fontWeight: 300,
-                fontSize: '13px',
-                color: 'var(--color-primary)',
-                lineHeight: 1.6,
-              }}>
-                {review.what_i_did}
-              </p>
+              <p className="label-field mb-1">What I actually did</p>
+              <p className="font-sans font-light text-[13px] text-primary leading-relaxed">{review.what_i_did}</p>
             </div>
           )}
           {review.what_got_in_way && (
             <div>
-              <p style={{ ...labelStyle, marginBottom: '4px' }}>What got in the way</p>
-              <p style={{
-                fontFamily: "'DM Sans', system-ui, sans-serif",
-                fontWeight: 300,
-                fontSize: '13px',
-                color: 'var(--color-primary)',
-                lineHeight: 1.6,
-              }}>
-                {review.what_got_in_way}
-              </p>
+              <p className="label-field mb-1">What got in the way</p>
+              <p className="font-sans font-light text-[13px] text-primary leading-relaxed">{review.what_got_in_way}</p>
             </div>
           )}
           {review.carrying_forward && (
             <div>
-              <p style={{ ...labelStyle, marginBottom: '4px' }}>Carrying into next week</p>
-              <p style={{
-                fontFamily: "'DM Sans', system-ui, sans-serif",
-                fontWeight: 300,
-                fontSize: '13px',
-                color: 'var(--color-primary)',
-                lineHeight: 1.6,
-              }}>
-                {review.carrying_forward}
-              </p>
+              <p className="label-field mb-1">Carrying into next week</p>
+              <p className="font-sans font-light text-[13px] text-primary leading-relaxed">{review.carrying_forward}</p>
             </div>
           )}
           {(review.sentence_practiced || review.sentence_hard || review.sentence_carrying) && (
-            <div style={{
-              paddingTop: '12px',
-              borderTop: '1px solid var(--color-border)',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '4px',
-            }}>
+            <div className="pt-3 border-t border-border flex flex-col gap-1">
               {review.sentence_practiced && (
-                <p style={{
-                  fontFamily: "'Cormorant', Georgia, serif",
-                  fontStyle: 'italic',
-                  fontWeight: 300,
-                  fontSize: '1rem',
-                  color: 'var(--color-primary)',
-                  lineHeight: 1.5,
-                }}>
+                <p className="font-display italic font-light text-base text-primary leading-snug">
                   "{review.sentence_practiced}"
                 </p>
               )}
               {review.sentence_hard && (
-                <p style={{
-                  fontFamily: "'Cormorant', Georgia, serif",
-                  fontStyle: 'italic',
-                  fontWeight: 300,
-                  fontSize: '1rem',
-                  color: 'var(--color-mid)',
-                  lineHeight: 1.5,
-                }}>
+                <p className="font-display italic font-light text-base text-mid leading-snug">
                   "{review.sentence_hard}"
                 </p>
               )}
               {review.sentence_carrying && (
-                <p style={{
-                  fontFamily: "'Cormorant', Georgia, serif",
-                  fontStyle: 'italic',
-                  fontWeight: 300,
-                  fontSize: '1rem',
-                  color: 'var(--color-mid)',
-                  lineHeight: 1.5,
-                }}>
+                <p className="font-display italic font-light text-base text-mid leading-snug">
                   "{review.sentence_carrying}"
                 </p>
               )}

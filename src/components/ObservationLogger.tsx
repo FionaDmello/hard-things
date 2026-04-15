@@ -10,57 +10,6 @@ interface Props {
   habit: BreakHabit
 }
 
-// ─── Shared styles ────────────────────────────────────────────────────────────
-
-const inputStyle: React.CSSProperties = {
-  width: '100%',
-  backgroundColor: 'var(--color-canvas)',
-  border: '1px solid var(--color-border)',
-  borderRadius: '0.5rem',
-  padding: '10px 12px',
-  fontFamily: "'DM Sans', system-ui, sans-serif",
-  fontWeight: 300,
-  fontSize: '14px',
-  color: 'var(--color-primary)',
-  outline: 'none',
-  boxSizing: 'border-box' as const,
-}
-
-const labelStyle: React.CSSProperties = {
-  fontFamily: "'DM Sans', system-ui, sans-serif",
-  fontWeight: 500,
-  fontSize: '11px',
-  letterSpacing: '0.12em',
-  textTransform: 'uppercase' as const,
-  color: 'var(--color-mid)',
-  display: 'block',
-  marginBottom: '8px',
-}
-
-const btnPrimary: React.CSSProperties = {
-  fontFamily: "'DM Sans', system-ui, sans-serif",
-  fontWeight: 500,
-  fontSize: '12px',
-  letterSpacing: '0.12em',
-  textTransform: 'uppercase' as const,
-  color: 'var(--color-accent)',
-  background: 'none',
-  border: 'none',
-  padding: 0,
-  cursor: 'pointer',
-}
-
-const btnSecondary: React.CSSProperties = {
-  fontFamily: "'DM Sans', system-ui, sans-serif",
-  fontWeight: 400,
-  fontSize: '12px',
-  color: 'var(--color-mid)',
-  background: 'none',
-  border: 'none',
-  padding: 0,
-  cursor: 'pointer',
-}
-
 // ─── Root ─────────────────────────────────────────────────────────────────────
 
 export function ObservationLogger({ habit }: Props) {
@@ -101,25 +50,11 @@ export function ObservationLogger({ habit }: Props) {
 
   return (
     <div>
-      {/* Progress counter */}
-      <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginBottom: '16px' }}>
-        <span style={{
-          fontFamily: "'Cormorant', Georgia, serif",
-          fontWeight: 400,
-          fontSize: '2rem',
-          color: 'var(--color-primary)',
-          lineHeight: 1,
-        }}>
+      <div className="flex items-baseline gap-2 mb-4">
+        <span className="font-display font-normal text-[2rem] text-primary leading-none">
           {stats.distinct_days_logged}
         </span>
-        <span style={{
-          fontFamily: "'DM Sans', system-ui, sans-serif",
-          fontWeight: 500,
-          fontSize: '11px',
-          letterSpacing: '0.12em',
-          textTransform: 'uppercase',
-          color: 'var(--color-mid)',
-        }}>
+        <span className="font-sans font-medium text-[11px] tracking-[0.12em] uppercase text-mid">
           of {OBSERVATION_THRESHOLD} days observed
         </span>
       </div>
@@ -142,42 +77,18 @@ export function ObservationLogger({ habit }: Props) {
 function AcknowledgementScreen({ onConfirm, isPending }: { onConfirm: () => void; isPending: boolean }) {
   return (
     <div>
-      <p style={{
-        fontFamily: "'DM Sans', system-ui, sans-serif",
-        fontWeight: 500,
-        fontSize: '11px',
-        letterSpacing: '0.12em',
-        textTransform: 'uppercase',
-        color: 'var(--color-accent)',
-        marginBottom: '12px',
-      }}>
-        Phase 1 complete
-      </p>
-      <p style={{
-        fontFamily: "'Cormorant', Georgia, serif",
-        fontStyle: 'italic',
-        fontWeight: 300,
-        fontSize: 'clamp(1.3rem, 4vw, 1.6rem)',
-        color: 'var(--color-primary)',
-        lineHeight: 1.3,
-        marginBottom: '10px',
-      }}>
+      <p className="eyebrow mb-3">Phase 1 complete</p>
+      <p className="font-display italic font-light text-primary leading-snug mb-2.5" style={{ fontSize: 'clamp(1.3rem, 4vw, 1.6rem)' }}>
         14 days of observation. You have enough to work with.
       </p>
-      <p style={{
-        fontFamily: "'DM Sans', system-ui, sans-serif",
-        fontWeight: 300,
-        fontSize: '13px',
-        color: 'var(--color-mid)',
-        lineHeight: 1.6,
-        marginBottom: '20px',
-      }}>
+      <p className="font-sans font-light text-[13px] text-mid leading-relaxed mb-5">
         The next phase is about replacing — finding what the habit is doing for you and giving that need another route.
       </p>
       <button
+        className="btn-primary"
         onClick={onConfirm}
         disabled={isPending}
-        style={{ ...btnPrimary, opacity: isPending ? 0.5 : 1 }}
+        style={{ opacity: isPending ? 0.5 : 1 }}
       >
         {isPending ? 'Moving on...' : 'Move to next phase →'}
       </button>
@@ -230,51 +141,35 @@ function LogForm({ habit, userId, onSaved }: { habit: BreakHabit; userId: string
   })
 
   if (!open) {
-    return (
-      <button onClick={() => setOpen(true)} style={btnPrimary}>
-        Log an observation
-      </button>
-    )
+    return <button className="btn-primary" onClick={() => setOpen(true)}>Log an observation</button>
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+    <div className="flex flex-col gap-4">
 
-      {/* Essential: trigger / task */}
       <div>
-        <label style={labelStyle}>What were you doing or avoiding?</label>
+        <label className="label-field">What were you doing or avoiding?</label>
         <input
           type="text"
           value={triggerOrTask}
           onChange={(e) => setTriggerOrTask(e.target.value)}
           autoFocus
-          style={inputStyle}
+          className="input-base"
         />
       </div>
 
-      {/* Essential: driver chips */}
       <div>
-        <label style={labelStyle}>What job was it doing?</label>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+        <label className="label-field">What job was it doing?</label>
+        <div className="flex flex-wrap gap-2">
           {habit.habit_drivers.map((driver) => {
             const selected = selectedDriver?.key === driver.key
             return (
               <button
                 key={driver.key}
                 onClick={() => handleDriverSelect(driver)}
-                style={{
-                  padding: '8px 14px',
-                  borderRadius: '2rem',
-                  border: `1px solid ${selected ? 'var(--color-accent)' : 'var(--color-border)'}`,
-                  backgroundColor: selected ? 'var(--color-canvas)' : 'transparent',
-                  fontFamily: "'DM Sans', system-ui, sans-serif",
-                  fontWeight: selected ? 500 : 400,
-                  fontSize: '13px',
-                  color: selected ? 'var(--color-primary)' : 'var(--color-mid)',
-                  cursor: 'pointer',
-                  transition: 'all 150ms ease',
-                  whiteSpace: 'nowrap' as const,
-                }}
+                className={`px-3.5 py-2 rounded-full border font-sans text-[13px] cursor-pointer transition-all duration-150 whitespace-nowrap ${
+                  selected ? 'border-accent bg-canvas font-medium text-primary' : 'border-border bg-transparent font-normal text-mid'
+                }`}
               >
                 {driver.label}
               </button>
@@ -283,40 +178,28 @@ function LogForm({ habit, userId, onSaved }: { habit: BreakHabit; userId: string
         </div>
       </div>
 
-      {/* Enriching detail — toggle */}
       {!showDetail ? (
         <button
           onClick={() => setShowDetail(true)}
-          style={{ ...btnSecondary, fontSize: '11px', letterSpacing: '0.08em', alignSelf: 'flex-start' }}
+          className="font-sans font-normal text-[11px] tracking-[0.08em] text-mid bg-transparent border-none p-0 cursor-pointer self-start"
         >
           + Add more detail
         </button>
       ) : (
         <>
-          {/* Available replacement — chips if driver has replacements, otherwise text */}
           {selectedDriver && selectedDriver.replacements.length > 0 && (
             <div>
-              <label style={labelStyle}>What was available at the moment?</label>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+              <label className="label-field">What was available at the moment?</label>
+              <div className="flex flex-wrap gap-2">
                 {selectedDriver.replacements.map((r) => {
                   const selected = availableReplacement === r
                   return (
                     <button
                       key={r}
                       onClick={() => setAvailableReplacement(r)}
-                      style={{
-                        padding: '8px 14px',
-                        borderRadius: '2rem',
-                        border: `1px solid ${selected ? 'var(--color-accent)' : 'var(--color-border)'}`,
-                        backgroundColor: selected ? 'var(--color-canvas)' : 'transparent',
-                        fontFamily: "'DM Sans', system-ui, sans-serif",
-                        fontWeight: selected ? 500 : 400,
-                        fontSize: '13px',
-                        color: selected ? 'var(--color-primary)' : 'var(--color-mid)',
-                        cursor: 'pointer',
-                        transition: 'all 150ms ease',
-                        whiteSpace: 'nowrap' as const,
-                      }}
+                      className={`px-3.5 py-2 rounded-full border font-sans text-[13px] cursor-pointer transition-all duration-150 whitespace-nowrap ${
+                        selected ? 'border-accent bg-canvas font-medium text-primary' : 'border-border bg-transparent font-normal text-mid'
+                      }`}
                     >
                       {r}
                     </button>
@@ -327,31 +210,32 @@ function LogForm({ habit, userId, onSaved }: { habit: BreakHabit; userId: string
           )}
 
           <div>
-            <label style={labelStyle}>Emotional state at the time</label>
-            <input type="text" value={emotionalState} onChange={(e) => setEmotionalState(e.target.value)} style={inputStyle} />
+            <label className="label-field">Emotional state at the time</label>
+            <input type="text" value={emotionalState} onChange={(e) => setEmotionalState(e.target.value)} className="input-base" />
           </div>
 
           <div>
-            <label style={labelStyle}>Physical sensation</label>
-            <input type="text" value={physicalSensation} onChange={(e) => setPhysicalSensation(e.target.value)} style={inputStyle} />
+            <label className="label-field">Physical sensation</label>
+            <input type="text" value={physicalSensation} onChange={(e) => setPhysicalSensation(e.target.value)} className="input-base" />
           </div>
 
           <div>
-            <label style={labelStyle}>How did you feel five minutes after?</label>
-            <input type="text" value={fiveMinutesAfter} onChange={(e) => setFiveMinutesAfter(e.target.value)} style={inputStyle} />
+            <label className="label-field">How did you feel five minutes after?</label>
+            <input type="text" value={fiveMinutesAfter} onChange={(e) => setFiveMinutesAfter(e.target.value)} className="input-base" />
           </div>
         </>
       )}
 
-      <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+      <div className="flex gap-4 items-center">
         <button
+          className="btn-primary"
           onClick={() => save()}
           disabled={isPending}
-          style={{ ...btnPrimary, opacity: isPending ? 0.5 : 1 }}
+          style={{ opacity: isPending ? 0.5 : 1 }}
         >
           {isPending ? 'Saving...' : 'Save'}
         </button>
-        <button onClick={() => setOpen(false)} style={btnSecondary}>Cancel</button>
+        <button className="btn-secondary" onClick={() => setOpen(false)}>Cancel</button>
       </div>
     </div>
   )
@@ -361,16 +245,8 @@ function LogForm({ habit, userId, onSaved }: { habit: BreakHabit; userId: string
 
 function ObservationHistory({ days }: { days: ObservationDay[] }) {
   return (
-    <div style={{ marginTop: '24px' }}>
-      <p style={{
-        fontFamily: "'DM Sans', system-ui, sans-serif",
-        fontWeight: 500,
-        fontSize: '11px',
-        letterSpacing: '0.12em',
-        textTransform: 'uppercase',
-        color: 'var(--color-mid)',
-        marginBottom: '12px',
-      }}>
+    <div className="mt-6">
+      <p className="font-sans font-medium text-[11px] tracking-[0.12em] uppercase text-mid mb-3">
         Past observations
       </p>
       <div>
@@ -393,50 +269,26 @@ function DayGroup({ day }: { day: ObservationDay }) {
   })
 
   return (
-    <div style={{ borderBottom: '1px solid var(--color-border)' }}>
+    <div className="border-b border-border">
       <button
         onClick={() => setOpen((o) => !o)}
-        style={{
-          width: '100%',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          padding: '12px 0',
-          background: 'none',
-          border: 'none',
-          cursor: 'pointer',
-          textAlign: 'left',
-        }}
+        className="w-full flex justify-between items-center py-3 bg-transparent border-none cursor-pointer text-left"
       >
-        <span style={{
-          fontFamily: "'DM Sans', system-ui, sans-serif",
-          fontWeight: 400,
-          fontSize: '13px',
-          color: 'var(--color-primary)',
-        }}>
-          {label}
-        </span>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <span style={{
-            fontFamily: "'DM Sans', system-ui, sans-serif",
-            fontSize: '11px',
-            color: 'var(--color-mid)',
-          }}>
+        <span className="font-sans font-normal text-[13px] text-primary">{label}</span>
+        <div className="flex items-center gap-2.5">
+          <span className="font-sans text-[11px] text-mid">
             {day.entries.length} {day.entries.length === 1 ? 'entry' : 'entries'}
           </span>
-          <span style={{
-            fontSize: '12px',
-            color: 'var(--color-mid)',
-            display: 'inline-block',
-            transition: 'transform 200ms ease',
-            transform: open ? 'rotate(45deg)' : 'rotate(0deg)',
-          }}>
+          <span
+            className="text-xs text-mid inline-block transition-transform duration-200"
+            style={{ transform: open ? 'rotate(45deg)' : 'rotate(0deg)' }}
+          >
             +
           </span>
         </div>
       </button>
       {open && (
-        <div style={{ paddingBottom: '12px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        <div className="pb-3 flex flex-col gap-3">
           {day.entries.map((entry) => (
             <EntryRow key={entry.id} entry={entry} />
           ))}
@@ -464,39 +316,14 @@ function EntryRow({ entry }: { entry: ObservationEntry }) {
   const populated = fields.filter((f) => f.value)
 
   return (
-    <div style={{
-      paddingLeft: '12px',
-      borderLeft: '2px solid var(--color-accent)',
-      opacity: 0.85,
-    }}>
-      <p style={{
-        fontFamily: "'DM Sans', system-ui, sans-serif",
-        fontWeight: 500,
-        fontSize: '11px',
-        letterSpacing: '0.12em',
-        textTransform: 'uppercase',
-        color: 'var(--color-mid)',
-        marginBottom: '6px',
-      }}>
+    <div className="pl-3 border-l-2 border-accent opacity-85">
+      <p className="font-sans font-medium text-[11px] tracking-[0.12em] uppercase text-mid mb-1.5">
         {time}
       </p>
       {populated.map((f) => (
-        <div key={f.label} style={{ marginBottom: '3px' }}>
-          <span style={{
-            fontFamily: "'DM Sans', system-ui, sans-serif",
-            fontSize: '12px',
-            color: 'var(--color-mid)',
-          }}>
-            {f.label}:{' '}
-          </span>
-          <span style={{
-            fontFamily: "'DM Sans', system-ui, sans-serif",
-            fontWeight: 400,
-            fontSize: '12px',
-            color: 'var(--color-primary)',
-          }}>
-            {f.value}
-          </span>
+        <div key={f.label} className="mb-0.5">
+          <span className="font-sans text-xs text-mid">{f.label}: </span>
+          <span className="font-sans font-normal text-xs text-primary">{f.value}</span>
         </div>
       ))}
     </div>
