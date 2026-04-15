@@ -333,7 +333,7 @@ function HabitSelectScreen({ habits, isLoading, onSelect, onClose }: {
 
       <header className="mb-10">
         <h1 className="font-display font-light text-primary leading-tight" style={{ fontSize: 'clamp(2.4rem, 8vw, 3.2rem)' }}>
-          You're in an urge.
+          You have an urge.
         </h1>
         <p className="font-sans font-medium text-[11px] tracking-[0.2em] uppercase text-mid mt-3">Which habit?</p>
         <div className="mt-4 h-px bg-border" />
@@ -378,7 +378,7 @@ function UrgeEntryScreen({ habitName, intensity, onSelect, onContinue, onBack, o
         <div>
           <p className="font-sans font-medium text-[11px] tracking-[0.2em] uppercase text-mid mb-5">{habitName}</p>
           <p className="font-display font-light text-primary leading-snug" style={{ fontSize: 'clamp(1.6rem, 5vw, 2rem)' }}>
-            You're in an urge.<br />You opened the app.<br />That already matters.
+            You have an urge.<br />You opened the app.<br />That already matters.
           </p>
         </div>
         <div>
@@ -402,7 +402,7 @@ function UrgeEntryScreen({ habitName, intensity, onSelect, onContinue, onBack, o
           </div>
         </div>
         <button
-          className="btn-primary self-start"
+          className="btn-primary self-end"
           onClick={onContinue}
           disabled={intensity === null}
           style={{ opacity: intensity !== null ? 1 : 0.4 }}
@@ -431,7 +431,7 @@ function DriverSelectScreen({ habit, driverKey, onSelect, onContinue, onBack, on
         <div>
           <p className="font-sans font-medium text-[11px] tracking-[0.2em] uppercase text-mid mb-5">{habit.name}</p>
           <p className="font-display font-normal text-primary leading-snug" style={{ fontSize: 'clamp(1.4rem, 4vw, 1.75rem)' }}>
-            Which job is it doing right now?
+            What job is it handling right now?
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -452,7 +452,7 @@ function DriverSelectScreen({ habit, driverKey, onSelect, onContinue, onBack, on
           ))}
         </div>
         <button
-          className="btn-primary self-start"
+          className="btn-primary self-end"
           onClick={onContinue}
           disabled={!driverKey}
           style={{ opacity: driverKey ? 1 : 0.4 }}
@@ -501,7 +501,7 @@ function ToolSelectScreen({ onStart, onBack, onClose }: {
           ))}
         </div>
         <button
-          className="btn-primary self-start"
+          className="btn-primary self-end"
           onClick={() => selected && onStart(selected)}
           disabled={!selected}
           style={{ opacity: selected ? 1 : 0.4 }}

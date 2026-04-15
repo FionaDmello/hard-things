@@ -5,7 +5,7 @@ interface Props {
   habit: AnyHabit
 }
 
-function CollapsibleSection({ title, children }: { title: string; children: React.ReactNode }) {
+export function CollapsibleSection({ title, children }: { title: string; children: React.ReactNode }) {
   const [open, setOpen] = useState(false)
   return (
     <div className="border-b border-mid/15 last:border-b-0">

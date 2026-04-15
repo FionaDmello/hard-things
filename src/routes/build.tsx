@@ -98,6 +98,7 @@ function HabitSection({ habit }: { habit: BuildHabit }) {
             borderRadius: '0.75rem',
             padding: '16px 20px',
           }}>
+            
             <div className="space-y-2">
               {Object.entries(habit.habit_schedule).map(([dayIndex, subHabit]) => (
                 <div
@@ -126,8 +127,10 @@ function HabitSection({ habit }: { habit: BuildHabit }) {
                     {subHabit}
                   </span>
                 </div>
+                
               ))}
             </div>
+          
           </div>
         </div>
       )}

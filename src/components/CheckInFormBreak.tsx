@@ -115,7 +115,8 @@ function CheckInForm({ habit, userId, today, onSaved, onCancel }: FormProps) {
   })
 
   const actions = (onNext: () => void, nextLabel = 'Next', canNext = true) => (
-    <div className="flex gap-4 items-center mt-4">
+    <div className="flex gap-4 justify-end mt-4">
+      <button className="btn-secondary" onClick={onCancel}>Cancel</button>
       <button
         className="btn-primary"
         onClick={onNext}
@@ -124,7 +125,6 @@ function CheckInForm({ habit, userId, today, onSaved, onCancel }: FormProps) {
       >
         {nextLabel}
       </button>
-      <button className="btn-secondary" onClick={onCancel}>Cancel</button>
     </div>
   )
 
@@ -254,7 +254,8 @@ function CheckInForm({ habit, userId, today, onSaved, onCancel }: FormProps) {
           autoFocus
           className="input-base"
         />
-        <div className="flex gap-4 items-center mt-4">
+        <div className="flex gap-4 justify-end mt-4">
+          <button className="btn-secondary" onClick={onCancel}>Cancel</button>
           <button
             className="btn-primary"
             onClick={() => save()}
@@ -263,7 +264,6 @@ function CheckInForm({ habit, userId, today, onSaved, onCancel }: FormProps) {
           >
             {isPending ? 'Saving...' : 'Save'}
           </button>
-          <button className="btn-secondary" onClick={onCancel}>Cancel</button>
         </div>
       </div>
     )

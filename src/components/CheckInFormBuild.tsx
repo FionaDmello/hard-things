@@ -144,9 +144,9 @@ function CheckInForm({ habit, userId, today, onSaved, onCancel }: FormProps) {
         <p className="font-display italic font-light text-[1.1rem] text-primary leading-snug mb-4">
           {discernmentQuestion}
         </p>
-        <div className="flex gap-4 items-center">
-          <button className="btn-primary" onClick={() => setStep('level')}>Continue</button>
+        <div className="flex gap-4 justify-end">
           <button className="btn-secondary" onClick={onCancel}>Cancel</button>
+          <button className="btn-primary" onClick={() => setStep('level')}>Continue</button>
         </div>
       </div>
     )
@@ -167,20 +167,21 @@ function CheckInForm({ habit, userId, today, onSaved, onCancel }: FormProps) {
                 key={value}
                 onClick={() => setPracticeLevel(value)}
                 className={`py-3.5 px-3 rounded-xl border flex items-center gap-2 cursor-pointer transition-all duration-150 text-left ${
-                  selected ? 'border-accent bg-card' : 'border-border bg-transparent'
+                  selected ? 'border-mid bg-card' : 'border-border bg-transparent'
                 }`}
               >
-                <span className={`font-sans text-base leading-none ${selected ? 'text-primary' : 'text-mid'}`}>
+                <span className={`font-sans text-base leading-none ${selected ? 'text-accent' : 'text-mid'}`}>
                   {symbol}
                 </span>
-                <span className={`font-sans text-[13px] ${selected ? 'font-medium text-primary' : 'font-normal text-mid'}`}>
+                <span className={`font-sans text-[13px] ${selected ? 'font-medium text-accent' : 'font-normal text-mid'}`}>
                   {label}
                 </span>
               </button>
             )
           })}
         </div>
-        <div className="flex gap-4 items-center">
+        <div className="flex gap-4 justify-end">
+          <button className="btn-secondary" onClick={onCancel}>Cancel</button>
           <button
             className="btn-primary"
             onClick={() => setStep('note')}
@@ -189,7 +190,6 @@ function CheckInForm({ habit, userId, today, onSaved, onCancel }: FormProps) {
           >
             Continue
           </button>
-          <button className="btn-secondary" onClick={onCancel}>Cancel</button>
         </div>
       </div>
     )
@@ -206,7 +206,7 @@ function CheckInForm({ habit, userId, today, onSaved, onCancel }: FormProps) {
           </p>
         )}
         <div className="mb-4">
-          <label className="label-field">One sentence.</label>
+          <label className="label-field">{`How do you feel having ${isMissed ? "not": ""} showed up today?`}</label>
           <input
             type="text"
             value={sentenceNote}
@@ -248,7 +248,8 @@ function CheckInForm({ habit, userId, today, onSaved, onCancel }: FormProps) {
             )}
           </div>
         )}
-        <div className="flex gap-4 items-center">
+        <div className="flex gap-4 justify-end">
+          <button className="btn-secondary" onClick={onCancel}>Cancel</button>
           <button
             className="btn-primary"
             onClick={() => save()}
@@ -257,7 +258,6 @@ function CheckInForm({ habit, userId, today, onSaved, onCancel }: FormProps) {
           >
             {isPending ? 'Saving...' : 'Save'}
           </button>
-          <button className="btn-secondary" onClick={onCancel}>Cancel</button>
         </div>
       </div>
     )

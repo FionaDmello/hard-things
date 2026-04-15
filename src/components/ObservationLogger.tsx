@@ -226,7 +226,8 @@ function LogForm({ habit, userId, onSaved }: { habit: BreakHabit; userId: string
         </>
       )}
 
-      <div className="flex gap-4 items-center">
+      <div className="flex gap-4 justify-end">
+        <button className="btn-secondary" onClick={() => setOpen(false)}>Cancel</button>
         <button
           className="btn-primary"
           onClick={() => save()}
@@ -235,7 +236,7 @@ function LogForm({ habit, userId, onSaved }: { habit: BreakHabit; userId: string
         >
           {isPending ? 'Saving...' : 'Save'}
         </button>
-        <button className="btn-secondary" onClick={() => setOpen(false)}>Cancel</button>
+        
       </div>
     </div>
   )

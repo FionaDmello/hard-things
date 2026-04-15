@@ -137,7 +137,7 @@ function EntryScreen({ habitName, onContinue, onClose }: {
           You opened this.<br />
           That's already the turn.
         </h1>
-        <button className="btn-primary self-start" onClick={onContinue}>Continue →</button>
+        <button className="btn-primary self-end" onClick={onContinue}>Continue →</button>
       </div>
     </div>
   )
@@ -191,7 +191,7 @@ function ClosingScreen({ variant, onClose }: { variant: ClosingVariant; onClose:
 
   useEffect(() => {
     const t1 = setTimeout(() => setShowLine2(true), 700)
-    const t2 = setTimeout(() => onCloseRef.current(), 4500)
+    const t2 = setTimeout(() => onCloseRef.current(), 1400)
     return () => { clearTimeout(t1); clearTimeout(t2) }
   }, [])
 
@@ -271,7 +271,7 @@ function BreakCollapseFlow({ habit, userId, onClose }: {
               className="input-base"
             />
             <button
-              className="btn-primary self-start"
+              className="btn-primary self-end"
               onClick={() => go(2)}
               disabled={!whatHappened.trim()}
               style={{ opacity: whatHappened.trim() ? 1 : 0.35 }}
@@ -287,7 +287,7 @@ function BreakCollapseFlow({ habit, userId, onClose }: {
           <StepHeader habitName={habit.name} stepLabel="2 of 3" onBack={() => back(1)} onClose={onClose} />
           <div className="flex flex-col gap-5">
             <p className="font-display italic font-light text-primary leading-snug" style={{ fontSize: 'clamp(1.4rem, 4vw, 1.75rem)' }}>
-              Which job was it doing?
+              Which job was it handling?
             </p>
             <div className="flex flex-wrap gap-2">
               {habit.habit_drivers.map((driver) => {
@@ -305,7 +305,7 @@ function BreakCollapseFlow({ habit, userId, onClose }: {
                 )
               })}
             </div>
-            <button className="btn-primary self-start" onClick={() => go(3)}>Continue →</button>
+            <button className="btn-primary self-end" onClick={() => go(3)}>Continue →</button>
           </div>
         </div>
       )}
@@ -317,7 +317,7 @@ function BreakCollapseFlow({ habit, userId, onClose }: {
             <p className="font-display italic font-light text-primary leading-snug" style={{ fontSize: 'clamp(1.4rem, 4vw, 1.75rem)' }}>
               What wasn't available or didn't land?
             </p>
-            <p className="font-sans font-light text-[13px] text-mid italic">Optional.</p>
+            <p className="font-sans font-light text-[13px] text-mid italic">Optional</p>
             <textarea
               value={replacementUnavailable}
               onChange={(e) => setReplacementUnavailable(e.target.value)}
@@ -326,7 +326,7 @@ function BreakCollapseFlow({ habit, userId, onClose }: {
               className="input-base"
             />
             <button
-              className="btn-primary self-start"
+              className="btn-primary self-end"
               onClick={() => save()}
               disabled={isPending}
               style={{ opacity: isPending ? 0.5 : 1 }}

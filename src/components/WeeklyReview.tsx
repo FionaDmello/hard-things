@@ -112,11 +112,11 @@ export function WeeklyReview() {
               ? 'Today is Sunday. A good time to close the week.'
               : `Week of ${formatWeekLabel(weekStart)}.`}
           </p>
-          <div className="flex gap-4 items-center">
-            <button className="btn-primary" onClick={() => setOpen(true)}>Write review</button>
-            {!showHistory && (
+          <div className="flex gap-4 justify-end">
+            {history && history.length >0 && !showHistory && (
               <button className="btn-secondary" onClick={() => setShowHistory(true)}>Past reviews</button>
             )}
+            <button className="btn-primary" onClick={() => setOpen(true)}>Write review</button>
           </div>
         </div>
       ) : (
@@ -201,7 +201,8 @@ function ReviewForm({ userId, weekStart, onSaved, onCancel }: FormProps) {
           autoFocus
           className="input-base mb-4"
         />
-        <div className="flex gap-4 items-center">
+        <div className="flex gap-4 justify-end">
+          <button className="btn-secondary" onClick={onCancel}>Cancel</button>
           <button
             className="btn-primary"
             onClick={() => {
@@ -211,7 +212,6 @@ function ReviewForm({ userId, weekStart, onSaved, onCancel }: FormProps) {
           >
             {isLast ? 'Continue' : 'Next'}
           </button>
-          <button className="btn-secondary" onClick={onCancel}>Cancel</button>
         </div>
       </div>
     )
@@ -227,8 +227,8 @@ function ReviewForm({ userId, weekStart, onSaved, onCancel }: FormProps) {
           These stay with you as a summary of the week.
         </p>
         <div className="flex gap-4">
-          <button className="btn-primary" onClick={() => setShowSentences(true)}>Continue</button>
           <button className="btn-secondary" onClick={onCancel}>Cancel</button>
+          <button className="btn-primary" onClick={() => setShowSentences(true)}>Continue</button>‚‚
         </div>
       </div>
     )
@@ -236,10 +236,10 @@ function ReviewForm({ userId, weekStart, onSaved, onCancel }: FormProps) {
 
   return (
     <div className="card p-5">
-      <p className="eyebrow mb-5">Three sentences</p>
+      <p className="eyebrow mb-5">Summary</p>
       <div className="flex flex-col gap-4 mb-5">
         <div>
-          <label className="label-field">What I practised this week.</label>
+          <label className="label-field">What I practised this week</label>
           <input
             type="text"
             value={answers.sentence_practiced}
@@ -248,7 +248,7 @@ function ReviewForm({ userId, weekStart, onSaved, onCancel }: FormProps) {
           />
         </div>
         <div>
-          <label className="label-field">What was hard.</label>
+          <label className="label-field">What was hard</label>
           <input
             type="text"
             value={answers.sentence_hard}
@@ -257,7 +257,7 @@ function ReviewForm({ userId, weekStart, onSaved, onCancel }: FormProps) {
           />
         </div>
         <div>
-          <label className="label-field">What I am carrying forward.</label>
+          <label className="label-field">What I am carrying forward</label>
           <input
             type="text"
             value={answers.sentence_carrying}
@@ -266,7 +266,8 @@ function ReviewForm({ userId, weekStart, onSaved, onCancel }: FormProps) {
           />
         </div>
       </div>
-      <div className="flex gap-4">
+      <div className="flex gap-4 justify-end">
+        <button className="btn-secondary" onClick={onCancel}>Cancel</button>
         <button
           className="btn-primary"
           onClick={() => save()}
@@ -275,7 +276,6 @@ function ReviewForm({ userId, weekStart, onSaved, onCancel }: FormProps) {
         >
           {isPending ? 'Saving...' : 'Save'}
         </button>
-        <button className="btn-secondary" onClick={onCancel}>Cancel</button>
       </div>
     </div>
   )
