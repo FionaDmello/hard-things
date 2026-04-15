@@ -63,7 +63,7 @@ export function Dashboard() {
             className="card-accent w-full flex items-center justify-between p-5 cursor-pointer text-left bg-transparent border-none"
           >
             <div>
-              <p className="font-sans font-medium text-[15px] text-primary">Urge Protocol</p>
+              <p className="font-sans font-medium text-[15px] text-mid">Urge Protocol</p>
               <p className="font-sans font-normal text-xs text-mid mt-0.5">Running an urge right now</p>
             </div>
             <span className="text-accent text-sm opacity-70">→</span>

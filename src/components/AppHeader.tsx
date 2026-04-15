@@ -85,13 +85,6 @@ export function AppHeader() {
                       {user.email}
                     </p>
                   )}
-                  <Link
-                    to="/settings"
-                    onClick={() => setMenuOpen(false)}
-                    className="block font-sans text-[13px] font-normal text-primary px-2 py-[7px] rounded-md no-underline"
-                  >
-                    Settings
-                  </Link>
                   <button
                     onClick={handleSignOut}
                     className="block w-full text-left font-sans text-[13px] font-normal text-primary px-2 py-[7px] rounded-md bg-transparent border-none cursor-pointer"
