@@ -1,120 +1,213 @@
 import { useState } from 'react'
-import { Link } from '@tanstack/react-router'
+import { useQuery } from '@tanstack/react-query'
+import { supabase } from '../lib/supabase'
 import { NightBeforePrompt } from './NightBeforePrompt'
-import { WeeklyReview } from './WeeklyReview'
 import { CollapseHandler } from './CollapseHandler'
 import { UrgeProtocol } from './UrgeProtocol'
+import { CheckInFormBreak } from './CheckInFormBreak'
+import { CheckInFormBuild } from './CheckInFormBuild'
+import type { BreakHabit, BuildHabit } from '../types/database'
+
+const PHASE_LABELS: Record<string, string> = {
+  phase_1_observe: 'Observing',
+  phase_2_replace: 'Replacing',
+  phase_3_quit:    'Quitting',
+}
+
+const card: React.CSSProperties = {
+  backgroundColor: 'var(--color-card)',
+  border: '1px solid var(--color-border)',
+  borderRadius: '0.75rem',
+}
+
+const cardAccent: React.CSSProperties = {
+  backgroundColor: 'var(--color-canvas)',
+  borderRadius: '0.75rem',
+}
 
 export function Dashboard() {
   const [showCollapse, setShowCollapse] = useState(false)
   const [showUrge, setShowUrge] = useState(false)
+
   const today = new Date()
   const dayName = today.toLocaleDateString('en-US', { weekday: 'long' })
-  const dateStr = today.toLocaleDateString('en-US', {
-    month: 'long',
-    day: 'numeric',
+  const dateStr = today.toLocaleDateString('en-US', { month: 'long', day: 'numeric' })
+
+  const { data: breakHabits = [] } = useQuery({
+    queryKey: ['habits', 'break'],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc('get_break_habits')
+      if (error) throw error
+      return (data ?? []) as BreakHabit[]
+    },
   })
 
+  const { data: buildHabits = [] } = useQuery({
+    queryKey: ['habits', 'build'],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc('get_build_habits')
+      if (error) throw error
+      return (data ?? []) as BuildHabit[]
+    },
+  })
+
+  const hasHabits = breakHabits.length > 0 || buildHabits.length > 0
+
   return (
-    <div className="min-h-screen">
-      <div className="max-w-lg mx-auto px-6 pt-14 pb-20">
+    <div className="max-w-lg mx-auto px-6 pt-24 pb-24">
 
-        {/* Editorial date header */}
-        <header className="mb-10">
-          <p className="text-xs uppercase tracking-[0.2em] text-mid mb-2">{dayName}</p>
-          <h1
-            className="text-primary leading-none"
-            style={{ fontFamily: "'Cormorant', Georgia, serif", fontWeight: 300, fontSize: 'clamp(2.8rem, 10vw, 4rem)' }}
+      {/* Date header */}
+      <header className="mb-10">
+        <p className="eyebrow mb-2">{dayName}</p>
+        <h1
+          className="display"
+          style={{ fontSize: 'clamp(2.8rem, 10vw, 4rem)' }}
+        >
+          {dateStr}
+        </h1>
+      </header>
+
+      {/* Right now — crisis tools */}
+      <section className="mb-10">
+        <p className="eyebrow mb-3">Right now</p>
+        <div className="space-y-2">
+
+          {/* Urge Protocol — accent-warm card */}
+          <button
+            onClick={() => setShowUrge(true)}
+            style={{
+              ...cardAccent,
+              width: '100%',
+              padding: '20px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              cursor: 'pointer',
+              background: 'none',
+              textAlign: 'left',
+            }}
+            className="card-accent"
           >
-            {dateStr}
-          </h1>
-          <div className="mt-8 h-px bg-mid/20" />
-        </header>
+            <div>
+              <p style={{
+                fontFamily: "'DM Sans', system-ui, sans-serif",
+                fontWeight: 500,
+                fontSize: '15px',
+                color: 'var(--color-primary)',
+              }}>
+                Urge Protocol
+              </p>
+              <p style={{
+                fontFamily: "'DM Sans', system-ui, sans-serif",
+                fontWeight: 400,
+                fontSize: '12px',
+                color: 'var(--color-mid)',
+                marginTop: '2px',
+              }}>
+                Running an urge right now
+              </p>
+            </div>
+            <span style={{ color: 'var(--color-accent)', fontSize: '14px', opacity: 0.7 }}>→</span>
+          </button>
 
-        {/* Contextual prompts */}
-        <NightBeforePrompt />
-        <WeeklyReview />
+          {/* Collapse Handler — standard card */}
+          <button
+            onClick={() => setShowCollapse(true)}
+            style={{
+              ...card,
+              width: '100%',
+              padding: '16px 20px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              cursor: 'pointer',
+              background: 'var(--color-card)',
+              textAlign: 'left',
+            }}
+          >
+            <div>
+              <p style={{
+                fontFamily: "'DM Sans', system-ui, sans-serif",
+                fontWeight: 500,
+                fontSize: '15px',
+                color: 'var(--color-primary)',
+              }}>
+                Collapse Handler
+              </p>
+              <p style={{
+                fontFamily: "'DM Sans', system-ui, sans-serif",
+                fontWeight: 400,
+                fontSize: '12px',
+                color: 'var(--color-mid)',
+                marginTop: '2px',
+              }}>
+                Something slipped
+              </p>
+            </div>
+            <span style={{ color: 'var(--color-mid)', fontSize: '14px', opacity: 0.5 }}>→</span>
+          </button>
 
-        {/* Situational tools — for right now */}
+        </div>
+      </section>
+
+      {/* Tonight — conditional, NightBeforePrompt handles its own visibility */}
+      <NightBeforePrompt />
+
+      {/* Today's habits — inline check-ins */}
+      {hasHabits && (
         <section className="mb-10">
-          <p className="text-xs uppercase tracking-[0.2em] text-mid mb-4">Right now</p>
-          <div className="space-y-2">
-            <button
-              onClick={() => setShowUrge(true)}
-              className="w-full py-4 px-5 bg-accent text-light rounded-xl text-left flex items-center justify-between group transition-opacity hover:opacity-90"
-            >
-              <div>
-                <p className="text-sm font-medium">Urge Protocol</p>
-                <p className="text-xs mt-0.5 opacity-70">Running an urge right now</p>
-              </div>
-              <span className="opacity-60 group-hover:opacity-100 transition-opacity text-sm">→</span>
-            </button>
+          <p className="eyebrow mb-3">Today</p>
+          <div className="space-y-3">
 
-            <button
-              onClick={() => setShowCollapse(true)}
-              className="w-full py-4 px-5 border border-mid/25 text-primary rounded-xl text-left flex items-center justify-between group hover:border-mid/50 transition-colors"
-            >
-              <div>
-                <p className="text-sm font-medium">Collapse Handler</p>
-                <p className="text-xs text-mid mt-0.5">Something slipped</p>
+            {breakHabits.map((habit) => (
+              <div key={habit.id} style={{ ...card, padding: '20px' }}>
+                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px', marginBottom: '4px' }}>
+                  <h2
+                    style={{
+                      fontFamily: "'Cormorant', Georgia, serif",
+                      fontStyle: 'italic',
+                      fontWeight: 300,
+                      fontSize: '1.2rem',
+                      color: 'var(--color-primary)',
+                      lineHeight: 1.2,
+                    }}
+                  >
+                    {habit.name}
+                  </h2>
+                  {habit.current_phase && (
+                    <span className="eyebrow" style={{ color: 'var(--color-mid)', flexShrink: 0, paddingTop: '3px' }}>
+                      {PHASE_LABELS[habit.current_phase]}
+                    </span>
+                  )}
+                </div>
+                <CheckInFormBreak habit={habit} />
               </div>
-              <span className="text-mid opacity-40 group-hover:opacity-80 transition-opacity text-sm">→</span>
-            </button>
+            ))}
+
+            {buildHabits.map((habit) => (
+              <div key={habit.id} style={{ ...card, padding: '20px' }}>
+                <h2
+                  style={{
+                    fontFamily: "'Cormorant', Georgia, serif",
+                    fontStyle: 'italic',
+                    fontWeight: 300,
+                    fontSize: '1.2rem',
+                    color: 'var(--color-primary)',
+                    lineHeight: 1.2,
+                    marginBottom: '4px',
+                  }}
+                >
+                  {habit.name}
+                </h2>
+                <CheckInFormBuild habit={habit} />
+              </div>
+            ))}
+
           </div>
         </section>
-
-        {/* Primary navigation */}
-        <nav>
-          <p className="text-xs uppercase tracking-[0.2em] text-mid mb-4">Sections</p>
-          <div className="space-y-2">
-
-            <Link
-              to="/break"
-              className="flex items-center justify-between w-full py-5 px-5 bg-accent-light border border-mid/10 rounded-xl hover:border-mid/30 transition-colors group"
-            >
-              <div>
-                <p className="font-medium text-primary">Break</p>
-                <p className="text-xs text-mid mt-0.5 tracking-wide">Reduce · Investigate · Replace</p>
-              </div>
-              <span className="text-mid opacity-30 group-hover:opacity-70 transition-opacity text-sm">→</span>
-            </Link>
-
-            <Link
-              to="/build"
-              className="flex items-center justify-between w-full py-5 px-5 bg-accent-light border border-mid/10 rounded-xl hover:border-mid/30 transition-colors group"
-            >
-              <div>
-                <p className="font-medium text-primary">Build</p>
-                <p className="text-xs text-mid mt-0.5 tracking-wide">Minimum Viable Habit</p>
-              </div>
-              <span className="text-mid opacity-30 group-hover:opacity-70 transition-opacity text-sm">→</span>
-            </Link>
-
-            <div className="grid grid-cols-2 gap-2">
-              <Link
-                to="/understand"
-                className="py-4 px-4 bg-accent-light border border-mid/10 rounded-xl hover:border-mid/30 transition-colors group"
-              >
-                <p className="font-medium text-primary text-sm">Understand</p>
-                <p className="text-xs text-mid mt-0.5">Patterns</p>
-              </Link>
-
-              <Link
-                to="/settings"
-                className="py-4 px-4 bg-accent-light border border-mid/10 rounded-xl hover:border-mid/30 transition-colors group"
-              >
-                <p className="font-medium text-primary text-sm">Settings</p>
-                <p className="text-xs text-mid mt-0.5">Theme & account</p>
-              </Link>
-            </div>
-
-          </div>
-        </nav>
-
-      </div>
+      )}
 
       {showUrge && <UrgeProtocol onClose={() => setShowUrge(false)} />}
-
       {showCollapse && <CollapseHandler onClose={() => setShowCollapse(false)} />}
     </div>
   )

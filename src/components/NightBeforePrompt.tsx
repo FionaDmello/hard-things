@@ -3,13 +3,13 @@ import { useState, useEffect } from 'react'
 type TomorrowType = 'yoga' | 'gym' | 'rest'
 
 const TOMORROW: Record<number, TomorrowType> = {
-  0: 'yoga',  // Sunday    → Monday yoga
-  1: 'gym',   // Monday    → Tuesday gym
-  2: 'gym',   // Tuesday   → Wednesday gym
-  3: 'gym',   // Wednesday → Thursday gym
-  4: 'yoga',  // Thursday  → Friday yoga
-  5: 'yoga',  // Friday    → Saturday yoga
-  6: 'rest',  // Saturday  → Sunday rest
+  0: 'yoga',
+  1: 'gym',
+  2: 'gym',
+  3: 'gym',
+  4: 'yoga',
+  5: 'yoga',
+  6: 'rest',
 }
 
 const STORAGE_KEY = 'night_before_dismissed'
@@ -42,46 +42,69 @@ export function NightBeforePrompt() {
   const tomorrow = TOMORROW[new Date().getDay()]
   const isGym = tomorrow === 'gym'
 
-  function handleConfirm() {
-    dismiss()
-    setVisible(false)
-  }
-
-  function handleDismiss() {
-    dismiss()
-    setVisible(false)
-  }
-
   return (
-    <div className="bg-accent-light border border-mid/20 rounded-lg p-4 mb-6">
-      <p className="text-sm text-mid mb-1">Tonight</p>
-      {isGym ? (
-        <>
-          <p className="font-medium text-primary mb-1">
-            Gym tomorrow.
-          </p>
-          <p className="text-sm text-primary mb-4">Day bag packed? Both bags at the door?</p>
-        </>
-      ) : (
-        <>
-          <p className="font-medium text-primary mb-1">Yoga tomorrow.</p>
-          <p className="text-sm text-primary mb-4">Clothes on top of phone?</p>
-        </>
-      )}
-      <div className="flex gap-3">
-        <button
-          onClick={handleConfirm}
-          className="px-4 py-1.5 bg-primary text-light text-sm rounded-lg"
-        >
-          Done
-        </button>
-        <button
-          onClick={handleDismiss}
-          className="px-4 py-1.5 text-mid text-sm hover:text-primary"
-        >
-          Dismiss
-        </button>
+    <section className="mb-10">
+      <p className="eyebrow mb-3">Tonight</p>
+      <div style={{
+        backgroundColor: 'var(--color-card)',
+        border: '1px solid var(--color-border)',
+        borderRadius: '0.75rem',
+        padding: '20px',
+      }}>
+        <p style={{
+          fontFamily: "'Cormorant', Georgia, serif",
+          fontStyle: 'italic',
+          fontWeight: 300,
+          fontSize: '1.15rem',
+          color: 'var(--color-primary)',
+          marginBottom: '6px',
+        }}>
+          {isGym ? 'Gym tomorrow.' : 'Yoga tomorrow.'}
+        </p>
+        <p style={{
+          fontFamily: "'DM Sans', system-ui, sans-serif",
+          fontWeight: 300,
+          fontSize: '13px',
+          color: 'var(--color-mid)',
+          marginBottom: '16px',
+        }}>
+          {isGym ? 'Day bag packed? Both bags at the door?' : 'Clothes on top of phone?'}
+        </p>
+        <div style={{ display: 'flex', gap: '12px' }}>
+          <button
+            onClick={() => { dismiss(); setVisible(false) }}
+            style={{
+              fontFamily: "'DM Sans', system-ui, sans-serif",
+              fontWeight: 500,
+              fontSize: '12px',
+              letterSpacing: '0.12em',
+              textTransform: 'uppercase',
+              color: 'var(--color-accent)',
+              background: 'none',
+              border: 'none',
+              padding: 0,
+              cursor: 'pointer',
+            }}
+          >
+            Done
+          </button>
+          <button
+            onClick={() => { dismiss(); setVisible(false) }}
+            style={{
+              fontFamily: "'DM Sans', system-ui, sans-serif",
+              fontWeight: 400,
+              fontSize: '12px',
+              color: 'var(--color-mid)',
+              background: 'none',
+              border: 'none',
+              padding: 0,
+              cursor: 'pointer',
+            }}
+          >
+            Dismiss
+          </button>
+        </div>
       </div>
-    </div>
+    </section>
   )
 }

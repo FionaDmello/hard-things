@@ -1,5 +1,4 @@
-import { createFileRoute, useNavigate, Link } from '@tanstack/react-router'
-import { ThemePicker } from '../components/ThemePicker'
+import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { useAuthStore } from '../stores'
 import { supabase } from '../lib/supabase'
 
@@ -19,40 +18,73 @@ function Settings() {
   }
 
   return (
-    <div className="max-w-lg mx-auto px-6 pt-14 pb-24">
-      <Link to="/" className="inline-flex items-center gap-1.5 text-xs text-mid hover:text-primary transition-colors mb-10">
+    <div style={{ maxWidth: '32rem', margin: '0 auto', padding: '96px 24px 96px' }}>
+
+      <Link
+        to="/"
+        style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: '6px',
+          fontFamily: "'DM Sans', system-ui, sans-serif",
+          fontWeight: 400,
+          fontSize: '12px',
+          letterSpacing: '0.12em',
+          textTransform: 'uppercase',
+          color: 'var(--color-mid)',
+          textDecoration: 'none',
+          marginBottom: '40px',
+        }}
+      >
         <span>←</span>
-        <span className="uppercase tracking-[0.15em]">Dashboard</span>
+        <span>Today</span>
       </Link>
 
-      <header className="mb-10">
-        <h1
-          className="text-primary leading-tight"
-          style={{ fontFamily: "'Cormorant', Georgia, serif", fontWeight: 300, fontSize: 'clamp(2.4rem, 8vw, 3.2rem)' }}
-        >
+      <header style={{ marginBottom: '40px' }}>
+        <h1 style={{
+          fontFamily: "'Cormorant', Georgia, serif",
+          fontWeight: 300,
+          fontSize: 'clamp(2.4rem, 8vw, 3.2rem)',
+          color: 'var(--color-primary)',
+          lineHeight: 1.1,
+        }}>
           Settings
         </h1>
-        <div className="mt-6 h-px bg-mid/20" />
+        <div style={{ marginTop: '24px', height: '1px', backgroundColor: 'var(--color-border)' }} />
       </header>
 
-      <section className="mb-12">
-        <p className="text-xs uppercase tracking-[0.2em] text-mid mb-5">Appearance</p>
-        <ThemePicker />
-      </section>
+      <div style={{ height: '1px', backgroundColor: 'var(--color-border)', marginBottom: '40px' }} />
 
-      <div className="h-px bg-mid/15 mb-10" />
-
-      <section className="flex items-center justify-between">
+      <section style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         {user?.email && (
-          <p className="text-xs text-mid">{user.email}</p>
+          <p style={{
+            fontFamily: "'DM Sans', system-ui, sans-serif",
+            fontWeight: 300,
+            fontSize: '12px',
+            color: 'var(--color-mid)',
+          }}>
+            {user.email}
+          </p>
         )}
         <button
           onClick={handleSignOut}
-          className="text-xs uppercase tracking-[0.15em] text-mid hover:text-primary transition-colors"
+          style={{
+            fontFamily: "'DM Sans', system-ui, sans-serif",
+            fontWeight: 400,
+            fontSize: '12px',
+            letterSpacing: '0.12em',
+            textTransform: 'uppercase',
+            color: 'var(--color-mid)',
+            background: 'none',
+            border: 'none',
+            padding: 0,
+            cursor: 'pointer',
+          }}
         >
           Sign out
         </button>
       </section>
+
     </div>
   )
 }

@@ -1,6 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { useAuthStore, useThemeStore } from '../stores'
-import { ThemePicker } from '../components/ThemePicker'
+import { useAuthStore } from '../stores'
 import { Dashboard } from '../components/Dashboard'
 import { AuthForm } from '../components/AuthForm'
 
@@ -9,24 +8,32 @@ export const Route = createFileRoute('/')({
 })
 
 function Home() {
-  const { user, isLoading: authLoading } = useAuthStore()
-  const { hasSelectedTheme } = useThemeStore()
+  const { user, isLoading } = useAuthStore()
 
-  if (authLoading || (user && hasSelectedTheme === null)) {
+  if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-mid">Loading...</div>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          minHeight: '100svh',
+        }}
+      >
+        <span
+          style={{
+            fontFamily: "'DM Sans', system-ui, sans-serif",
+            fontSize: '13px',
+            color: 'var(--color-mid)',
+          }}
+        >
+          Loading...
+        </span>
       </div>
     )
   }
 
-  if (!user) {
-    return <AuthForm />
-  }
-
-  if (!hasSelectedTheme) {
-    return <ThemePicker isFirstLaunch />
-  }
+  if (!user) return <AuthForm />
 
   return <Dashboard />
 }

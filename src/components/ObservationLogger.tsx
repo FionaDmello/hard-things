@@ -10,6 +10,59 @@ interface Props {
   habit: BreakHabit
 }
 
+// ─── Shared styles ────────────────────────────────────────────────────────────
+
+const inputStyle: React.CSSProperties = {
+  width: '100%',
+  backgroundColor: 'var(--color-canvas)',
+  border: '1px solid var(--color-border)',
+  borderRadius: '0.5rem',
+  padding: '10px 12px',
+  fontFamily: "'DM Sans', system-ui, sans-serif",
+  fontWeight: 300,
+  fontSize: '14px',
+  color: 'var(--color-primary)',
+  outline: 'none',
+  boxSizing: 'border-box' as const,
+}
+
+const labelStyle: React.CSSProperties = {
+  fontFamily: "'DM Sans', system-ui, sans-serif",
+  fontWeight: 500,
+  fontSize: '11px',
+  letterSpacing: '0.12em',
+  textTransform: 'uppercase' as const,
+  color: 'var(--color-mid)',
+  display: 'block',
+  marginBottom: '8px',
+}
+
+const btnPrimary: React.CSSProperties = {
+  fontFamily: "'DM Sans', system-ui, sans-serif",
+  fontWeight: 500,
+  fontSize: '12px',
+  letterSpacing: '0.12em',
+  textTransform: 'uppercase' as const,
+  color: 'var(--color-accent)',
+  background: 'none',
+  border: 'none',
+  padding: 0,
+  cursor: 'pointer',
+}
+
+const btnSecondary: React.CSSProperties = {
+  fontFamily: "'DM Sans', system-ui, sans-serif",
+  fontWeight: 400,
+  fontSize: '12px',
+  color: 'var(--color-mid)',
+  background: 'none',
+  border: 'none',
+  padding: 0,
+  cursor: 'pointer',
+}
+
+// ─── Root ─────────────────────────────────────────────────────────────────────
+
 export function ObservationLogger({ habit }: Props) {
   const user = useAuthStore((state) => state.user)
   const queryClient = useQueryClient()
@@ -43,25 +96,30 @@ export function ObservationLogger({ habit }: Props) {
   const isComplete = stats.distinct_days_logged >= OBSERVATION_THRESHOLD
 
   if (isComplete) {
-    return (
-      <AcknowledgementScreen
-        onConfirm={() => confirmPhaseChange()}
-        isPending={isConfirming}
-      />
-    )
+    return <AcknowledgementScreen onConfirm={() => confirmPhaseChange()} isPending={isConfirming} />
   }
 
   return (
-    <div className="mt-4 space-y-5">
-      {/* Progress */}
-      <div className="flex items-baseline gap-2">
-        <span
-          className="text-primary"
-          style={{ fontFamily: "'Cormorant', Georgia, serif", fontWeight: 400, fontSize: '1.6rem', lineHeight: 1 }}
-        >
+    <div>
+      {/* Progress counter */}
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px', marginBottom: '16px' }}>
+        <span style={{
+          fontFamily: "'Cormorant', Georgia, serif",
+          fontWeight: 400,
+          fontSize: '2rem',
+          color: 'var(--color-primary)',
+          lineHeight: 1,
+        }}>
           {stats.distinct_days_logged}
         </span>
-        <span className="text-xs uppercase tracking-[0.15em] text-mid">
+        <span style={{
+          fontFamily: "'DM Sans', system-ui, sans-serif",
+          fontWeight: 500,
+          fontSize: '11px',
+          letterSpacing: '0.12em',
+          textTransform: 'uppercase',
+          color: 'var(--color-mid)',
+        }}>
           of {OBSERVATION_THRESHOLD} days observed
         </span>
       </div>
@@ -81,35 +139,47 @@ export function ObservationLogger({ habit }: Props) {
 
 // ─── Acknowledgement Screen ───────────────────────────────────────────────────
 
-function AcknowledgementScreen({
-  onConfirm,
-  isPending,
-}: {
-  onConfirm: () => void
-  isPending: boolean
-}) {
+function AcknowledgementScreen({ onConfirm, isPending }: { onConfirm: () => void; isPending: boolean }) {
   return (
-    <div className="mt-4 space-y-5">
-      <div>
-        <p className="text-xs uppercase tracking-[0.2em] text-mid mb-3">Phase 1 complete</p>
-        <h3
-          className="text-primary leading-snug"
-          style={{ fontFamily: "'Cormorant', Georgia, serif", fontWeight: 300, fontSize: 'clamp(1.4rem, 4vw, 1.75rem)' }}
-        >
-          14 days of observation. You have enough to work with.
-        </h3>
-      </div>
-      <p className="text-sm text-mid leading-relaxed">
-        The next phase is about replacing — finding what the habit is doing for you
-        and giving that need another route.
+    <div>
+      <p style={{
+        fontFamily: "'DM Sans', system-ui, sans-serif",
+        fontWeight: 500,
+        fontSize: '11px',
+        letterSpacing: '0.12em',
+        textTransform: 'uppercase',
+        color: 'var(--color-accent)',
+        marginBottom: '12px',
+      }}>
+        Phase 1 complete
+      </p>
+      <p style={{
+        fontFamily: "'Cormorant', Georgia, serif",
+        fontStyle: 'italic',
+        fontWeight: 300,
+        fontSize: 'clamp(1.3rem, 4vw, 1.6rem)',
+        color: 'var(--color-primary)',
+        lineHeight: 1.3,
+        marginBottom: '10px',
+      }}>
+        14 days of observation. You have enough to work with.
+      </p>
+      <p style={{
+        fontFamily: "'DM Sans', system-ui, sans-serif",
+        fontWeight: 300,
+        fontSize: '13px',
+        color: 'var(--color-mid)',
+        lineHeight: 1.6,
+        marginBottom: '20px',
+      }}>
+        The next phase is about replacing — finding what the habit is doing for you and giving that need another route.
       </p>
       <button
         onClick={onConfirm}
         disabled={isPending}
-        className="w-full py-3 px-4 bg-primary text-light text-sm rounded-xl flex items-center justify-between disabled:opacity-50"
+        style={{ ...btnPrimary, opacity: isPending ? 0.5 : 1 }}
       >
-        <span>{isPending ? 'Moving on...' : 'Move to next phase'}</span>
-        <span className="opacity-60">→</span>
+        {isPending ? 'Moving on...' : 'Move to next phase →'}
       </button>
     </div>
   )
@@ -117,15 +187,7 @@ function AcknowledgementScreen({
 
 // ─── Log Form ─────────────────────────────────────────────────────────────────
 
-function LogForm({
-  habit,
-  userId,
-  onSaved,
-}: {
-  habit: BreakHabit
-  userId: string
-  onSaved: () => void
-}) {
+function LogForm({ habit, userId, onSaved }: { habit: BreakHabit; userId: string; onSaved: () => void }) {
   const [open, setOpen] = useState(false)
   const [triggerOrTask, setTriggerOrTask] = useState('')
   const [selectedDriver, setSelectedDriver] = useState<HabitDriver | null>(null)
@@ -133,9 +195,9 @@ function LogForm({
   const [emotionalState, setEmotionalState] = useState('')
   const [fiveMinutesAfter, setFiveMinutesAfter] = useState('')
   const [physicalSensation, setPhysicalSensation] = useState('')
+  const [showDetail, setShowDetail] = useState(false)
 
-  function handleDriverSelect(driverKey: string) {
-    const driver = habit.habit_drivers.find((d) => d.key === driverKey) ?? null
+  function handleDriverSelect(driver: HabitDriver) {
     setSelectedDriver(driver)
     setAvailableReplacement('')
   }
@@ -145,12 +207,12 @@ function LogForm({
       const { error } = await supabase.from('observations').insert({
         user_id: userId,
         habit_id: habit.id,
-        trigger_or_task: triggerOrTask || null,
-        driver: selectedDriver?.key || null,
+        trigger_or_task:       triggerOrTask       || null,
+        driver:                selectedDriver?.key || null,
         available_replacement: availableReplacement || null,
-        emotional_state: emotionalState || null,
-        five_minutes_after: fiveMinutesAfter || null,
-        physical_sensation: physicalSensation || null,
+        emotional_state:       emotionalState      || null,
+        five_minutes_after:    fiveMinutesAfter    || null,
+        physical_sensation:    physicalSensation   || null,
       })
       if (error) throw error
     },
@@ -163,109 +225,133 @@ function LogForm({
       setEmotionalState('')
       setFiveMinutesAfter('')
       setPhysicalSensation('')
+      setShowDetail(false)
     },
   })
 
   if (!open) {
     return (
-      <button
-        onClick={() => setOpen(true)}
-        className="w-full py-3 px-4 border border-mid/25 text-primary rounded-xl text-left flex items-center justify-between group hover:border-mid/50 transition-colors"
-      >
-        <span className="text-sm">Log an observation</span>
-        <span className="text-mid opacity-40 group-hover:opacity-80">+</span>
+      <button onClick={() => setOpen(true)} style={btnPrimary}>
+        Log an observation
       </button>
     )
   }
 
   return (
-    <div className="p-4 border border-mid/20 rounded-xl space-y-4">
-      <p className="text-xs uppercase tracking-[0.2em] text-mid">New observation</p>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
 
-      <Field label="What were you doing or avoiding?" value={triggerOrTask} onChange={setTriggerOrTask} />
+      {/* Essential: trigger / task */}
+      <div>
+        <label style={labelStyle}>What were you doing or avoiding?</label>
+        <input
+          type="text"
+          value={triggerOrTask}
+          onChange={(e) => setTriggerOrTask(e.target.value)}
+          autoFocus
+          style={inputStyle}
+        />
+      </div>
 
-      <SelectField label="What job was it doing?">
-        <select
-          value={selectedDriver?.key ?? ''}
-          onChange={(e) => handleDriverSelect(e.target.value)}
-          className="w-full px-3 py-2 pr-8 text-sm rounded-lg border border-mid/30 bg-light focus:outline-none focus:border-accent appearance-none"
+      {/* Essential: driver chips */}
+      <div>
+        <label style={labelStyle}>What job was it doing?</label>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+          {habit.habit_drivers.map((driver) => {
+            const selected = selectedDriver?.key === driver.key
+            return (
+              <button
+                key={driver.key}
+                onClick={() => handleDriverSelect(driver)}
+                style={{
+                  padding: '8px 14px',
+                  borderRadius: '2rem',
+                  border: `1px solid ${selected ? 'var(--color-accent)' : 'var(--color-border)'}`,
+                  backgroundColor: selected ? 'var(--color-canvas)' : 'transparent',
+                  fontFamily: "'DM Sans', system-ui, sans-serif",
+                  fontWeight: selected ? 500 : 400,
+                  fontSize: '13px',
+                  color: selected ? 'var(--color-primary)' : 'var(--color-mid)',
+                  cursor: 'pointer',
+                  transition: 'all 150ms ease',
+                  whiteSpace: 'nowrap' as const,
+                }}
+              >
+                {driver.label}
+              </button>
+            )
+          })}
+        </div>
+      </div>
+
+      {/* Enriching detail — toggle */}
+      {!showDetail ? (
+        <button
+          onClick={() => setShowDetail(true)}
+          style={{ ...btnSecondary, fontSize: '11px', letterSpacing: '0.08em', alignSelf: 'flex-start' }}
         >
-          <option value="">Select a driver</option>
-          {habit.habit_drivers.map((d) => (
-            <option key={d.key} value={d.key}>{d.label}</option>
-          ))}
-        </select>
-      </SelectField>
+          + Add more detail
+        </button>
+      ) : (
+        <>
+          {/* Available replacement — chips if driver has replacements, otherwise text */}
+          {selectedDriver && selectedDriver.replacements.length > 0 && (
+            <div>
+              <label style={labelStyle}>What was available at the moment?</label>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                {selectedDriver.replacements.map((r) => {
+                  const selected = availableReplacement === r
+                  return (
+                    <button
+                      key={r}
+                      onClick={() => setAvailableReplacement(r)}
+                      style={{
+                        padding: '8px 14px',
+                        borderRadius: '2rem',
+                        border: `1px solid ${selected ? 'var(--color-accent)' : 'var(--color-border)'}`,
+                        backgroundColor: selected ? 'var(--color-canvas)' : 'transparent',
+                        fontFamily: "'DM Sans', system-ui, sans-serif",
+                        fontWeight: selected ? 500 : 400,
+                        fontSize: '13px',
+                        color: selected ? 'var(--color-primary)' : 'var(--color-mid)',
+                        cursor: 'pointer',
+                        transition: 'all 150ms ease',
+                        whiteSpace: 'nowrap' as const,
+                      }}
+                    >
+                      {r}
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+          )}
 
-      {selectedDriver && selectedDriver.replacements.length > 0 && (
-        <SelectField label="What was available at the moment?">
-          <select
-            value={availableReplacement}
-            onChange={(e) => setAvailableReplacement(e.target.value)}
-            className="w-full px-3 py-2 pr-8 text-sm rounded-lg border border-mid/30 bg-light focus:outline-none focus:border-accent appearance-none"
-          >
-            <option value="">Select a replacement</option>
-            {selectedDriver.replacements.map((r) => (
-              <option key={r} value={r}>{r}</option>
-            ))}
-          </select>
-        </SelectField>
+          <div>
+            <label style={labelStyle}>Emotional state at the time</label>
+            <input type="text" value={emotionalState} onChange={(e) => setEmotionalState(e.target.value)} style={inputStyle} />
+          </div>
+
+          <div>
+            <label style={labelStyle}>Physical sensation</label>
+            <input type="text" value={physicalSensation} onChange={(e) => setPhysicalSensation(e.target.value)} style={inputStyle} />
+          </div>
+
+          <div>
+            <label style={labelStyle}>How did you feel five minutes after?</label>
+            <input type="text" value={fiveMinutesAfter} onChange={(e) => setFiveMinutesAfter(e.target.value)} style={inputStyle} />
+          </div>
+        </>
       )}
 
-      <Field label="Emotional state at the time" value={emotionalState} onChange={setEmotionalState} />
-      <Field label="How did you feel five minutes after?" value={fiveMinutesAfter} onChange={setFiveMinutesAfter} />
-      <Field label="Physical sensation" value={physicalSensation} onChange={setPhysicalSensation} />
-
-      <div className="flex gap-3 pt-1">
+      <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
         <button
           onClick={() => save()}
           disabled={isPending}
-          className="px-4 py-1.5 bg-primary text-light text-sm rounded-lg disabled:opacity-50"
+          style={{ ...btnPrimary, opacity: isPending ? 0.5 : 1 }}
         >
           {isPending ? 'Saving...' : 'Save'}
         </button>
-        <button
-          onClick={() => setOpen(false)}
-          className="px-4 py-1.5 text-mid text-sm hover:text-primary"
-        >
-          Cancel
-        </button>
-      </div>
-    </div>
-  )
-}
-
-function Field({
-  label,
-  value,
-  onChange,
-}: {
-  label: string
-  value: string
-  onChange: (v: string) => void
-}) {
-  return (
-    <div>
-      <label className="block text-xs uppercase tracking-[0.15em] text-mid mb-1.5">{label}</label>
-      <input
-        type="text"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="w-full px-3 py-2 pr-8 text-sm rounded-lg border border-mid/30 bg-light focus:outline-none focus:border-accent appearance-none"
-      />
-    </div>
-  )
-}
-
-function SelectField({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div>
-      <label className="block text-xs uppercase tracking-[0.15em] text-mid mb-1.5">{label}</label>
-      <div className="relative">
-        {children}
-        <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-primary text-sm">
-          ▾
-        </span>
+        <button onClick={() => setOpen(false)} style={btnSecondary}>Cancel</button>
       </div>
     </div>
   )
@@ -275,8 +361,18 @@ function SelectField({ label, children }: { label: string; children: React.React
 
 function ObservationHistory({ days }: { days: ObservationDay[] }) {
   return (
-    <div>
-      <p className="text-xs uppercase tracking-[0.2em] text-mid mb-3">Past observations</p>
+    <div style={{ marginTop: '24px' }}>
+      <p style={{
+        fontFamily: "'DM Sans', system-ui, sans-serif",
+        fontWeight: 500,
+        fontSize: '11px',
+        letterSpacing: '0.12em',
+        textTransform: 'uppercase',
+        color: 'var(--color-mid)',
+        marginBottom: '12px',
+      }}>
+        Past observations
+      </p>
       <div>
         {days.map((day) => (
           <DayGroup key={day.date} day={day} />
@@ -297,26 +393,50 @@ function DayGroup({ day }: { day: ObservationDay }) {
   })
 
   return (
-    <div className="border-b border-mid/15 last:border-b-0">
+    <div style={{ borderBottom: '1px solid var(--color-border)' }}>
       <button
         onClick={() => setOpen((o) => !o)}
-        className="w-full flex justify-between items-center py-3 text-left group"
+        style={{
+          width: '100%',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          padding: '12px 0',
+          background: 'none',
+          border: 'none',
+          cursor: 'pointer',
+          textAlign: 'left',
+        }}
       >
-        <span className="text-sm text-primary group-hover:text-accent transition-colors">{label}</span>
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-mid">
+        <span style={{
+          fontFamily: "'DM Sans', system-ui, sans-serif",
+          fontWeight: 400,
+          fontSize: '13px',
+          color: 'var(--color-primary)',
+        }}>
+          {label}
+        </span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <span style={{
+            fontFamily: "'DM Sans', system-ui, sans-serif",
+            fontSize: '11px',
+            color: 'var(--color-mid)',
+          }}>
             {day.entries.length} {day.entries.length === 1 ? 'entry' : 'entries'}
           </span>
-          <span
-            className="w-4 h-4 flex items-center justify-center text-mid transition-transform duration-200"
-            style={{ transform: open ? 'rotate(45deg)' : 'rotate(0deg)' }}
-          >
+          <span style={{
+            fontSize: '12px',
+            color: 'var(--color-mid)',
+            display: 'inline-block',
+            transition: 'transform 200ms ease',
+            transform: open ? 'rotate(45deg)' : 'rotate(0deg)',
+          }}>
             +
           </span>
         </div>
       </button>
       {open && (
-        <div className="mt-1 mb-4 space-y-4">
+        <div style={{ paddingBottom: '12px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
           {day.entries.map((entry) => (
             <EntryRow key={entry.id} entry={entry} />
           ))}
@@ -333,26 +453,50 @@ function EntryRow({ entry }: { entry: ObservationEntry }) {
   })
 
   const fields: { label: string; value: string | null }[] = [
-    { label: 'What was happening', value: entry.trigger_or_task },
-    { label: 'Job it was doing', value: entry.driver },
-    { label: 'What was available', value: entry.available_replacement },
-    { label: 'Emotional state', value: entry.emotional_state },
-    { label: 'Five minutes after', value: entry.five_minutes_after },
-    { label: 'Physical sensation', value: entry.physical_sensation },
+    { label: 'What was happening',  value: entry.trigger_or_task },
+    { label: 'Job it was doing',    value: entry.driver },
+    { label: 'What was available',  value: entry.available_replacement },
+    { label: 'Emotional state',     value: entry.emotional_state },
+    { label: 'Five minutes after',  value: entry.five_minutes_after },
+    { label: 'Physical sensation',  value: entry.physical_sensation },
   ]
 
   const populated = fields.filter((f) => f.value)
 
   return (
-    <div
-      className="pl-4 space-y-1.5 text-sm"
-      style={{ borderLeft: '2px solid var(--color-accent)', opacity: 0.85 }}
-    >
-      <p className="text-xs uppercase tracking-[0.15em] text-mid">{time}</p>
+    <div style={{
+      paddingLeft: '12px',
+      borderLeft: '2px solid var(--color-accent)',
+      opacity: 0.85,
+    }}>
+      <p style={{
+        fontFamily: "'DM Sans', system-ui, sans-serif",
+        fontWeight: 500,
+        fontSize: '11px',
+        letterSpacing: '0.12em',
+        textTransform: 'uppercase',
+        color: 'var(--color-mid)',
+        marginBottom: '6px',
+      }}>
+        {time}
+      </p>
       {populated.map((f) => (
-        <div key={f.label}>
-          <span className="text-mid text-xs">{f.label}: </span>
-          <span className="text-primary">{f.value}</span>
+        <div key={f.label} style={{ marginBottom: '3px' }}>
+          <span style={{
+            fontFamily: "'DM Sans', system-ui, sans-serif",
+            fontSize: '12px',
+            color: 'var(--color-mid)',
+          }}>
+            {f.label}:{' '}
+          </span>
+          <span style={{
+            fontFamily: "'DM Sans', system-ui, sans-serif",
+            fontWeight: 400,
+            fontSize: '12px',
+            color: 'var(--color-primary)',
+          }}>
+            {f.value}
+          </span>
         </div>
       ))}
     </div>

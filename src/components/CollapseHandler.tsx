@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useQuery, useMutation } from '@tanstack/react-query'
 import { supabase } from '../lib/supabase'
 import { useAuthStore } from '../stores'
@@ -22,9 +22,64 @@ type Direction = 'forward' | 'back'
 type ClosingVariant = 'break' | 'build_return' | 'build_rest'
 
 const CLOSING_LINES: Record<ClosingVariant, [string, string]> = {
-  break:        ['The slip is logged.', 'The next urge — execute the protocol.'],
-  build_return: ['Logged as non-negotiable.', 'You showed up at the minimum. That is the work.'],
+  break:        ['The slip is logged.', 'You came back to the protocol. That\'s the work.'],
+  build_return: ['Returned at the minimum.', 'That\'s what the non-negotiable is for. It held.'],
   build_rest:   ['Logged.', 'Rest without judgment. Return tomorrow.'],
+}
+
+// ─── Shared styles ────────────────────────────────────────────────────────────
+
+const navBtn: React.CSSProperties = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: '6px',
+  fontFamily: "'DM Sans', system-ui, sans-serif",
+  fontWeight: 500,
+  fontSize: '11px',
+  letterSpacing: '0.15em',
+  textTransform: 'uppercase',
+  color: 'var(--color-mid)',
+  background: 'none',
+  border: 'none',
+  padding: 0,
+  cursor: 'pointer',
+}
+
+const textareaStyle: React.CSSProperties = {
+  width: '100%',
+  backgroundColor: 'var(--color-canvas)',
+  border: '1px solid var(--color-border)',
+  borderRadius: '0.5rem',
+  padding: '12px 14px',
+  fontFamily: "'DM Sans', system-ui, sans-serif",
+  fontWeight: 300,
+  fontSize: '14px',
+  color: 'var(--color-primary)',
+  outline: 'none',
+  resize: 'none' as const,
+  boxSizing: 'border-box' as const,
+}
+
+const btnPrimary: React.CSSProperties = {
+  fontFamily: "'DM Sans', system-ui, sans-serif",
+  fontWeight: 500,
+  fontSize: '12px',
+  letterSpacing: '0.12em',
+  textTransform: 'uppercase' as const,
+  color: 'var(--color-accent)',
+  background: 'none',
+  border: 'none',
+  padding: 0,
+  cursor: 'pointer',
+}
+
+const stepPrompt: React.CSSProperties = {
+  fontFamily: "'Cormorant', Georgia, serif",
+  fontStyle: 'italic',
+  fontWeight: 300,
+  fontSize: 'clamp(1.4rem, 4vw, 1.75rem)',
+  color: 'var(--color-primary)',
+  lineHeight: 1.3,
 }
 
 // ─── Overlay ──────────────────────────────────────────────────────────────────
@@ -57,10 +112,16 @@ export function CollapseHandler({ habit: initialHabit, onClose, entryAnimation }
 
   return (
     <div
-      className="fixed inset-0 bg-light z-50 overflow-y-auto"
-      style={{ animation: entryAnimation ?? 'slide-up 320ms cubic-bezier(0.32, 0.72, 0, 1)' }}
+      style={{
+        position: 'fixed',
+        inset: 0,
+        backgroundColor: 'var(--color-canvas)',
+        zIndex: 50,
+        overflowY: 'auto',
+        animation: entryAnimation ?? 'slide-up 320ms cubic-bezier(0.32, 0.72, 0, 1)',
+      }}
     >
-      <div className="max-w-lg mx-auto px-6 pt-14 pb-24 min-h-screen">
+      <div style={{ maxWidth: '430px', margin: '0 auto', padding: '56px 24px 96px' }}>
         {!selectedHabit ? (
           <HabitPicker habits={allHabits} onSelect={setSelectedHabit} onClose={onClose} />
         ) : selectedHabit.section === 'build' ? (
@@ -75,50 +136,90 @@ export function CollapseHandler({ habit: initialHabit, onClose, entryAnimation }
 
 // ─── Habit Picker ─────────────────────────────────────────────────────────────
 
-function HabitPicker({
-  habits,
-  onSelect,
-  onClose,
-}: {
+function HabitPicker({ habits, onSelect, onClose }: {
   habits: AnyHabit[]
   onSelect: (h: AnyHabit) => void
   onClose: () => void
 }) {
   return (
     <div style={{ animation: 'fade-in 250ms ease-out' }}>
-      <button
-        onClick={onClose}
-        className="inline-flex items-center gap-1.5 text-xs text-mid hover:text-primary transition-colors mb-10"
-      >
-        <span>←</span>
-        <span className="uppercase tracking-[0.15em]">Close</span>
+      <button onClick={onClose} style={{ ...navBtn, marginBottom: '40px' }}>
+        <span>←</span><span>Close</span>
       </button>
 
-      <header className="mb-10">
-        <h1
-          className="text-primary leading-tight"
-          style={{ fontFamily: "'Cormorant', Georgia, serif", fontWeight: 300, fontSize: 'clamp(2.4rem, 8vw, 3.2rem)' }}
-        >
+      <header style={{ marginBottom: '40px' }}>
+        <p style={{
+          fontFamily: "'DM Sans', system-ui, sans-serif",
+          fontWeight: 500,
+          fontSize: '11px',
+          letterSpacing: '0.18em',
+          textTransform: 'uppercase',
+          color: 'var(--color-accent)',
+          marginBottom: '10px',
+        }}>
+          Collapse Handler
+        </p>
+        <h1 style={{
+          fontFamily: "'Cormorant', Georgia, serif",
+          fontStyle: 'italic',
+          fontWeight: 300,
+          fontSize: 'clamp(2.2rem, 7vw, 3rem)',
+          color: 'var(--color-primary)',
+          lineHeight: 1.1,
+          marginBottom: '8px',
+        }}>
           Something slipped.
         </h1>
-        <p className="text-xs uppercase tracking-[0.2em] text-mid mt-3">Which habit?</p>
-        <div className="mt-4 h-px bg-mid/20" />
+        <p style={{
+          fontFamily: "'DM Sans', system-ui, sans-serif",
+          fontWeight: 300,
+          fontSize: '13px',
+          color: 'var(--color-mid)',
+        }}>
+          Which habit?
+        </p>
       </header>
 
-      <div className="space-y-3">
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
         {habits.map((habit) => (
           <button
             key={habit.id}
             onClick={() => onSelect(habit)}
-            className="w-full flex items-center justify-between py-5 px-5 bg-accent-light border border-mid/10 rounded-xl hover:border-mid/30 transition-colors group"
+            style={{
+              width: '100%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: '20px',
+              backgroundColor: 'var(--color-card)',
+              border: '1px solid var(--color-border)',
+              borderRadius: '0.75rem',
+              cursor: 'pointer',
+              textAlign: 'left',
+            }}
           >
-            <div className="text-left">
-              <p className="font-medium text-primary">{habit.name}</p>
-              <p className="text-xs text-mid mt-0.5 uppercase tracking-[0.15em]">
+            <div>
+              <p style={{
+                fontFamily: "'DM Sans', system-ui, sans-serif",
+                fontWeight: 500,
+                fontSize: '15px',
+                color: 'var(--color-primary)',
+              }}>
+                {habit.name}
+              </p>
+              <p style={{
+                fontFamily: "'DM Sans', system-ui, sans-serif",
+                fontWeight: 500,
+                fontSize: '10px',
+                letterSpacing: '0.15em',
+                textTransform: 'uppercase',
+                color: 'var(--color-mid)',
+                marginTop: '3px',
+              }}>
                 {habit.section === 'break' ? 'Break' : 'Build'}
               </p>
             </div>
-            <span className="text-mid opacity-30 group-hover:opacity-70 transition-opacity text-sm">→</span>
+            <span style={{ color: 'var(--color-mid)', fontSize: '14px', opacity: 0.5 }}>→</span>
           </button>
         ))}
       </div>
@@ -128,47 +229,51 @@ function HabitPicker({
 
 // ─── Entry Screen ─────────────────────────────────────────────────────────────
 
-function EntryScreen({
-  habitName,
-  onContinue,
-  onClose,
-}: {
+function EntryScreen({ habitName, onContinue, onClose }: {
   habitName: string
   onContinue: () => void
   onClose: () => void
 }) {
   return (
     <div style={{ animation: 'fade-in 300ms ease-out' }}>
-      <button
-        onClick={onClose}
-        className="inline-flex items-center gap-1.5 text-xs text-mid hover:text-primary transition-colors mb-10"
-      >
-        <span>←</span>
-        <span className="uppercase tracking-[0.15em]">Close</span>
+      <button onClick={onClose} style={{ ...navBtn, marginBottom: '40px' }}>
+        <span>←</span><span>Close</span>
       </button>
 
-      <div className="flex flex-col min-h-[55vh] justify-center">
-        <p className="text-xs uppercase tracking-[0.2em] text-mid mb-6">{habitName}</p>
-        <h1
-          className="text-primary leading-tight mb-10"
-          style={{ fontFamily: "'Cormorant', Georgia, serif", fontWeight: 300, fontSize: 'clamp(2rem, 7vw, 2.8rem)' }}
-        >
+      <div style={{ display: 'flex', flexDirection: 'column', minHeight: '55vh', justifyContent: 'center' }}>
+        <p style={{
+          fontFamily: "'DM Sans', system-ui, sans-serif",
+          fontWeight: 500,
+          fontSize: '11px',
+          letterSpacing: '0.18em',
+          textTransform: 'uppercase',
+          color: 'var(--color-mid)',
+          marginBottom: '24px',
+        }}>
+          {habitName}
+        </p>
+        <h1 style={{
+          fontFamily: "'Cormorant', Georgia, serif",
+          fontStyle: 'italic',
+          fontWeight: 300,
+          fontSize: 'clamp(2rem, 7vw, 2.8rem)',
+          color: 'var(--color-primary)',
+          lineHeight: 1.2,
+          marginBottom: '40px',
+        }}>
           It happened.<br />
           You opened this.<br />
           That's already the turn.
         </h1>
-        <button
-          onClick={onContinue}
-          className="self-start px-6 py-2.5 bg-primary text-light text-sm rounded-xl"
-        >
-          Continue
+        <button onClick={onContinue} style={btnPrimary}>
+          Continue →
         </button>
       </div>
     </div>
   )
 }
 
-// ─── Step Wrapper (animates on remount via key) ───────────────────────────────
+// ─── Step Wrapper ─────────────────────────────────────────────────────────────
 
 function StepWrapper({ direction, children }: { direction: Direction; children: React.ReactNode }) {
   return (
@@ -180,41 +285,43 @@ function StepWrapper({ direction, children }: { direction: Direction; children: 
 
 // ─── Step Header ──────────────────────────────────────────────────────────────
 
-function StepHeader({
-  habitName,
-  stepLabel,
-  onBack,
-  onClose,
-}: {
+function StepHeader({ habitName, stepLabel, onBack, onClose }: {
   habitName: string
   stepLabel: string
   onBack?: () => void
   onClose: () => void
 }) {
   return (
-    <div className="mb-10">
-      <div className="mb-8">
-        {onBack ? (
-          <button
-            onClick={onBack}
-            className="inline-flex items-center gap-1.5 text-xs text-mid hover:text-primary transition-colors"
-          >
-            <span>←</span>
-            <span className="uppercase tracking-[0.15em]">Back</span>
-          </button>
-        ) : (
-          <button
-            onClick={onClose}
-            className="inline-flex items-center gap-1.5 text-xs text-mid hover:text-primary transition-colors"
-          >
-            <span>←</span>
-            <span className="uppercase tracking-[0.15em]">Close</span>
-          </button>
-        )}
-      </div>
-      <p className="text-xs uppercase tracking-[0.2em] text-mid mb-1">{habitName}</p>
-      <p className="text-xs text-mid/60">{stepLabel}</p>
-      <div className="mt-4 h-px bg-mid/20" />
+    <div style={{ marginBottom: '40px' }}>
+      <button
+        onClick={onBack ?? onClose}
+        style={{ ...navBtn, marginBottom: '32px' }}
+      >
+        <span>←</span>
+        <span>{onBack ? 'Back' : 'Close'}</span>
+      </button>
+      <p style={{
+        fontFamily: "'DM Sans', system-ui, sans-serif",
+        fontWeight: 500,
+        fontSize: '11px',
+        letterSpacing: '0.18em',
+        textTransform: 'uppercase',
+        color: 'var(--color-mid)',
+        marginBottom: '4px',
+      }}>
+        {habitName}
+      </p>
+      <p style={{
+        fontFamily: "'DM Sans', system-ui, sans-serif",
+        fontWeight: 400,
+        fontSize: '11px',
+        color: 'var(--color-mid)',
+        opacity: 0.6,
+        marginBottom: '16px',
+      }}>
+        {stepLabel}
+      </p>
+      <div style={{ height: '1px', backgroundColor: 'var(--color-border)' }} />
     </div>
   )
 }
@@ -224,57 +331,58 @@ function StepHeader({
 function ClosingScreen({ variant, onClose }: { variant: ClosingVariant; onClose: () => void }) {
   const [showLine2, setShowLine2] = useState(false)
   const [line1, line2] = CLOSING_LINES[variant]
+  const onCloseRef = useRef(onClose)
+  onCloseRef.current = onClose
 
   useEffect(() => {
     const t1 = setTimeout(() => setShowLine2(true), 700)
-    const t2 = setTimeout(() => onClose(), 4500)
-    return () => {
-      clearTimeout(t1)
-      clearTimeout(t2)
-    }
-  }, [onClose])
+    const t2 = setTimeout(() => onCloseRef.current(), 4500)
+    return () => { clearTimeout(t1); clearTimeout(t2) }
+  }, [])
 
   return (
     <div
-      className="flex flex-col min-h-[60vh] justify-center cursor-pointer"
       onClick={onClose}
-      style={{ animation: 'fade-in 300ms ease-out' }}
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        minHeight: '60vh',
+        justifyContent: 'center',
+        cursor: 'pointer',
+        animation: 'fade-in 300ms ease-out',
+      }}
     >
-      <p
-        className="text-primary leading-snug mb-5"
-        style={{
-          fontFamily: "'Cormorant', Georgia, serif",
-          fontWeight: 300,
-          fontSize: 'clamp(1.8rem, 5vw, 2.4rem)',
-          animation: 'fade-in 300ms ease-out',
-        }}
-      >
+      <p style={{
+        fontFamily: "'Cormorant', Georgia, serif",
+        fontStyle: 'italic',
+        fontWeight: 300,
+        fontSize: 'clamp(1.8rem, 5vw, 2.4rem)',
+        color: 'var(--color-primary)',
+        lineHeight: 1.2,
+        marginBottom: '20px',
+        animation: 'fade-in 300ms ease-out',
+      }}>
         {line1}
       </p>
-      {showLine2 && (
-        <p
-          className="text-mid leading-relaxed"
-          style={{
-            fontFamily: "'Cormorant', Georgia, serif",
-            fontWeight: 300,
-            fontSize: 'clamp(1.2rem, 4vw, 1.6rem)',
-            animation: 'fade-in 300ms ease-out',
-          }}
-        >
-          {line2}
-        </p>
-      )}
+      <p style={{
+        fontFamily: "'Cormorant', Georgia, serif",
+        fontStyle: 'italic',
+        fontWeight: 300,
+        fontSize: 'clamp(1.1rem, 3.5vw, 1.5rem)',
+        color: 'var(--color-mid)',
+        lineHeight: 1.5,
+        opacity: showLine2 ? 1 : 0,
+        transition: 'opacity 500ms ease-out',
+      }}>
+        {line2}
+      </p>
     </div>
   )
 }
 
 // ─── Break Collapse Flow ──────────────────────────────────────────────────────
 
-function BreakCollapseFlow({
-  habit,
-  userId,
-  onClose,
-}: {
+function BreakCollapseFlow({ habit, userId, onClose }: {
   habit: BreakHabit
   userId: string
   onClose: () => void
@@ -297,29 +405,14 @@ function BreakCollapseFlow({
       })
       if (error) throw error
     },
-    onSuccess: () => {
-      setDirection('forward')
-      setStep('closing')
-    },
+    onSuccess: () => { setDirection('forward'); setStep('closing') },
   })
 
-  function go(next: Step) {
-    setDirection('forward')
-    setStep(next)
-  }
+  function go(next: Step) { setDirection('forward'); setStep(next) }
+  function back(prev: Step) { setDirection('back'); setStep(prev) }
 
-  function back(prev: Step) {
-    setDirection('back')
-    setStep(prev)
-  }
-
-  if (step === 'entry') {
-    return <EntryScreen habitName={habit.name} onContinue={() => go(1)} onClose={onClose} />
-  }
-
-  if (step === 'closing') {
-    return <ClosingScreen variant="break" onClose={onClose} />
-  }
+  if (step === 'entry') return <EntryScreen habitName={habit.name} onContinue={() => go(1)} onClose={onClose} />
+  if (step === 'closing') return <ClosingScreen variant="break" onClose={onClose} />
 
   return (
     <StepWrapper key={step} direction={direction}>
@@ -327,27 +420,30 @@ function BreakCollapseFlow({
       {step === 1 && (
         <div>
           <StepHeader habitName={habit.name} stepLabel="1 of 3" onClose={onClose} />
-          <div className="space-y-6">
-            <p
-              className="text-primary leading-snug"
-              style={{ fontFamily: "'Cormorant', Georgia, serif", fontWeight: 400, fontSize: 'clamp(1.4rem, 4vw, 1.75rem)' }}
-            >
-              What happened?
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            <p style={stepPrompt}>What happened?</p>
+            <p style={{
+              fontFamily: "'DM Sans', system-ui, sans-serif",
+              fontWeight: 300,
+              fontSize: '13px',
+              color: 'var(--color-mid)',
+              fontStyle: 'italic',
+            }}>
+              Just the facts — no interpretation needed.
             </p>
-            <p className="text-sm text-mid italic">Describe it as fact, not judgment.</p>
             <textarea
               value={whatHappened}
               onChange={(e) => setWhatHappened(e.target.value)}
               rows={4}
               autoFocus
-              className="w-full px-4 py-3 text-sm rounded-xl border border-mid/30 bg-accent-light focus:outline-none focus:border-accent resize-none"
+              style={textareaStyle}
             />
             <button
               onClick={() => go(2)}
               disabled={!whatHappened.trim()}
-              className="px-6 py-2.5 bg-primary text-light text-sm rounded-xl disabled:opacity-40"
+              style={{ ...btnPrimary, opacity: whatHappened.trim() ? 1 : 0.35, alignSelf: 'flex-start' }}
             >
-              Continue
+              Continue →
             </button>
           </div>
         </div>
@@ -356,34 +452,39 @@ function BreakCollapseFlow({
       {step === 2 && (
         <div>
           <StepHeader habitName={habit.name} stepLabel="2 of 3" onBack={() => back(1)} onClose={onClose} />
-          <div className="space-y-6">
-            <p
-              className="text-primary leading-snug"
-              style={{ fontFamily: "'Cormorant', Georgia, serif", fontWeight: 400, fontSize: 'clamp(1.4rem, 4vw, 1.75rem)' }}
-            >
-              Which job was it doing?
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {habit.habit_drivers.map((driver) => (
-                <button
-                  key={driver.key}
-                  onClick={() => setJobIfBreak(driver.key)}
-                  className={`px-4 py-2 rounded-xl border text-sm transition-all ${
-                    jobIfBreak === driver.key
-                      ? 'border-accent bg-accent-light text-primary'
-                      : 'border-mid/20 text-primary hover:border-mid/40'
-                  }`}
-                >
-                  {driver.label}
-                </button>
-              ))}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            <p style={stepPrompt}>Which job was it doing?</p>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+              {habit.habit_drivers.map((driver) => {
+                const selected = jobIfBreak === driver.key
+                return (
+                  <button
+                    key={driver.key}
+                    onClick={() => setJobIfBreak(driver.key)}
+                    style={{
+                      padding: '8px 14px',
+                      borderRadius: '2rem',
+                      border: `1px solid ${selected ? 'var(--color-accent)' : 'var(--color-border)'}`,
+                      backgroundColor: selected ? 'var(--color-canvas)' : 'transparent',
+                      fontFamily: "'DM Sans', system-ui, sans-serif",
+                      fontWeight: selected ? 500 : 400,
+                      fontSize: '13px',
+                      color: selected ? 'var(--color-primary)' : 'var(--color-mid)',
+                      cursor: 'pointer',
+                      transition: 'all 150ms ease',
+                      whiteSpace: 'nowrap' as const,
+                    }}
+                  >
+                    {driver.label}
+                  </button>
+                )
+              })}
             </div>
             <button
               onClick={() => go(3)}
-              disabled={!jobIfBreak}
-              className="px-6 py-2.5 bg-primary text-light text-sm rounded-xl disabled:opacity-40"
+              style={{ ...btnPrimary, alignSelf: 'flex-start' }}
             >
-              Continue
+              Continue →
             </button>
           </div>
         </div>
@@ -392,27 +493,30 @@ function BreakCollapseFlow({
       {step === 3 && (
         <div>
           <StepHeader habitName={habit.name} stepLabel="3 of 3" onBack={() => back(2)} onClose={onClose} />
-          <div className="space-y-6">
-            <p
-              className="text-primary leading-snug"
-              style={{ fontFamily: "'Cormorant', Georgia, serif", fontWeight: 400, fontSize: 'clamp(1.4rem, 4vw, 1.75rem)' }}
-            >
-              Which replacement wasn't available or wasn't enough?
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            <p style={stepPrompt}>What wasn't available or didn't land?</p>
+            <p style={{
+              fontFamily: "'DM Sans', system-ui, sans-serif",
+              fontWeight: 300,
+              fontSize: '13px',
+              color: 'var(--color-mid)',
+              fontStyle: 'italic',
+            }}>
+              Optional.
             </p>
-            <p className="text-sm text-mid italic">Optional.</p>
             <textarea
               value={replacementUnavailable}
               onChange={(e) => setReplacementUnavailable(e.target.value)}
               rows={3}
               autoFocus
-              className="w-full px-4 py-3 text-sm rounded-xl border border-mid/30 bg-accent-light focus:outline-none focus:border-accent resize-none"
+              style={textareaStyle}
             />
             <button
               onClick={() => save()}
               disabled={isPending}
-              className="px-6 py-2.5 bg-primary text-light text-sm rounded-xl disabled:opacity-40"
+              style={{ ...btnPrimary, opacity: isPending ? 0.5 : 1, alignSelf: 'flex-start' }}
             >
-              {isPending ? 'Saving...' : 'Done'}
+              {isPending ? 'Saving...' : 'Done →'}
             </button>
           </div>
         </div>
@@ -424,11 +528,7 @@ function BreakCollapseFlow({
 
 // ─── Build Collapse Flow ──────────────────────────────────────────────────────
 
-function BuildCollapseFlow({
-  habit,
-  userId,
-  onClose,
-}: {
+function BuildCollapseFlow({ habit, userId, onClose }: {
   habit: BuildHabit
   userId: string
   onClose: () => void
@@ -473,23 +573,11 @@ function BuildCollapseFlow({
     },
   })
 
-  function go(next: Step) {
-    setDirection('forward')
-    setStep(next)
-  }
+  function go(next: Step) { setDirection('forward'); setStep(next) }
+  function back(prev: Step) { setDirection('back'); setStep(prev) }
 
-  function back(prev: Step) {
-    setDirection('back')
-    setStep(prev)
-  }
-
-  if (step === 'entry') {
-    return <EntryScreen habitName={habit.name} onContinue={() => go(1)} onClose={onClose} />
-  }
-
-  if (step === 'closing') {
-    return <ClosingScreen variant={closingVariant} onClose={onClose} />
-  }
+  if (step === 'entry') return <EntryScreen habitName={habit.name} onContinue={() => go(1)} onClose={onClose} />
+  if (step === 'closing') return <ClosingScreen variant={closingVariant} onClose={onClose} />
 
   return (
     <StepWrapper key={step} direction={direction}>
@@ -497,27 +585,30 @@ function BuildCollapseFlow({
       {step === 1 && (
         <div>
           <StepHeader habitName={habit.name} stepLabel="1 of 3" onClose={onClose} />
-          <div className="space-y-6">
-            <p
-              className="text-primary leading-snug"
-              style={{ fontFamily: "'Cormorant', Georgia, serif", fontWeight: 400, fontSize: 'clamp(1.4rem, 4vw, 1.75rem)' }}
-            >
-              What happened?
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            <p style={stepPrompt}>What happened?</p>
+            <p style={{
+              fontFamily: "'DM Sans', system-ui, sans-serif",
+              fontWeight: 300,
+              fontSize: '13px',
+              color: 'var(--color-mid)',
+              fontStyle: 'italic',
+            }}>
+              Just the facts — no interpretation needed.
             </p>
-            <p className="text-sm text-mid italic">Describe it as fact, not judgment.</p>
             <textarea
               value={whatHappened}
               onChange={(e) => setWhatHappened(e.target.value)}
               rows={4}
               autoFocus
-              className="w-full px-4 py-3 text-sm rounded-xl border border-mid/30 bg-accent-light focus:outline-none focus:border-accent resize-none"
+              style={textareaStyle}
             />
             <button
               onClick={() => go(2)}
               disabled={!whatHappened.trim()}
-              className="px-6 py-2.5 bg-primary text-light text-sm rounded-xl disabled:opacity-40"
+              style={{ ...btnPrimary, opacity: whatHappened.trim() ? 1 : 0.35, alignSelf: 'flex-start' }}
             >
-              Continue
+              Continue →
             </button>
           </div>
         </div>
@@ -526,34 +617,41 @@ function BuildCollapseFlow({
       {step === 2 && (
         <div>
           <StepHeader habitName={habit.name} stepLabel="2 of 3" onBack={() => back(1)} onClose={onClose} />
-          <div className="space-y-6">
-            <p
-              className="text-primary leading-snug"
-              style={{ fontFamily: "'Cormorant', Georgia, serif", fontWeight: 400, fontSize: 'clamp(1.4rem, 4vw, 1.75rem)' }}
-            >
-              What gave way?
-            </p>
-            <div className="space-y-2">
-              {WHAT_GAVE_WAY_OPTIONS.map((option) => (
-                <button
-                  key={option}
-                  onClick={() => setWhatGaveWay(option)}
-                  className={`w-full py-3.5 px-5 rounded-xl border text-left text-sm transition-all ${
-                    whatGaveWay === option
-                      ? 'border-accent bg-accent-light text-primary'
-                      : 'border-mid/20 text-primary hover:border-mid/40'
-                  }`}
-                >
-                  {option}
-                </button>
-              ))}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            <p style={stepPrompt}>What gave way?</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              {WHAT_GAVE_WAY_OPTIONS.map((option) => {
+                const selected = whatGaveWay === option
+                return (
+                  <button
+                    key={option}
+                    onClick={() => setWhatGaveWay(option)}
+                    style={{
+                      width: '100%',
+                      padding: '14px 16px',
+                      borderRadius: '0.625rem',
+                      border: `1px solid ${selected ? 'var(--color-accent)' : 'var(--color-border)'}`,
+                      backgroundColor: selected ? 'var(--color-canvas)' : 'transparent',
+                      fontFamily: "'DM Sans', system-ui, sans-serif",
+                      fontWeight: selected ? 500 : 400,
+                      fontSize: '14px',
+                      color: selected ? 'var(--color-primary)' : 'var(--color-mid)',
+                      cursor: 'pointer',
+                      transition: 'all 150ms ease',
+                      textAlign: 'left' as const,
+                    }}
+                  >
+                    {option}
+                  </button>
+                )
+              })}
             </div>
             <button
               onClick={() => go(3)}
               disabled={!whatGaveWay}
-              className="px-6 py-2.5 bg-primary text-light text-sm rounded-xl disabled:opacity-40"
+              style={{ ...btnPrimary, opacity: whatGaveWay ? 1 : 0.35, alignSelf: 'flex-start' }}
             >
-              Continue
+              Continue →
             </button>
           </div>
         </div>
@@ -562,35 +660,80 @@ function BuildCollapseFlow({
       {step === 3 && (
         <div>
           <StepHeader habitName={habit.name} stepLabel="3 of 3" onBack={() => back(2)} onClose={onClose} />
-          <div className="space-y-6">
-            <p
-              className="text-primary leading-snug"
-              style={{ fontFamily: "'Cormorant', Georgia, serif", fontWeight: 400, fontSize: 'clamp(1.4rem, 4vw, 1.75rem)' }}
-            >
-              Return at the minimum.
-            </p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            <p style={stepPrompt}>Return at the minimum.</p>
             {nonNegotiable && (
-              <div
-                className="py-4 pl-5"
-                style={{ borderLeft: '2px solid var(--color-accent)', animation: 'fade-in 300ms ease-out 100ms both' }}
-              >
-                <p className="text-xs uppercase tracking-[0.15em] text-mid mb-2">The non-negotiable version</p>
-                <p className="text-sm text-primary leading-relaxed">{nonNegotiable}</p>
+              <div style={{
+                paddingLeft: '16px',
+                borderLeft: '2px solid var(--color-accent)',
+                animation: 'fade-in 300ms ease-out 100ms both',
+              }}>
+                <p style={{
+                  fontFamily: "'DM Sans', system-ui, sans-serif",
+                  fontWeight: 500,
+                  fontSize: '11px',
+                  letterSpacing: '0.12em',
+                  textTransform: 'uppercase',
+                  color: 'var(--color-mid)',
+                  marginBottom: '6px',
+                }}>
+                  The non-negotiable version
+                </p>
+                <p style={{
+                  fontFamily: "'DM Sans', system-ui, sans-serif",
+                  fontWeight: 300,
+                  fontSize: '14px',
+                  color: 'var(--color-primary)',
+                  lineHeight: 1.6,
+                }}>
+                  {nonNegotiable}
+                </p>
               </div>
             )}
-            <p className="text-sm text-mid">Can you do this today?</p>
-            <div className="flex gap-3">
+            <p style={{
+              fontFamily: "'DM Sans', system-ui, sans-serif",
+              fontWeight: 300,
+              fontSize: '13px',
+              color: 'var(--color-mid)',
+            }}>
+              Can you do this today?
+            </p>
+            <div style={{ display: 'flex', gap: '12px' }}>
               <button
                 onClick={() => save(true)}
                 disabled={isPending}
-                className="flex-1 py-3 bg-primary text-light text-sm rounded-xl disabled:opacity-40"
+                style={{
+                  flex: 1,
+                  padding: '14px',
+                  borderRadius: '0.625rem',
+                  backgroundColor: 'var(--color-card)',
+                  border: '1px solid var(--color-accent)',
+                  fontFamily: "'DM Sans', system-ui, sans-serif",
+                  fontWeight: 500,
+                  fontSize: '13px',
+                  color: 'var(--color-accent)',
+                  cursor: 'pointer',
+                  opacity: isPending ? 0.5 : 1,
+                }}
               >
                 Yes
               </button>
               <button
                 onClick={() => save(false)}
                 disabled={isPending}
-                className="flex-1 py-3 border border-mid/30 text-primary text-sm rounded-xl disabled:opacity-40 hover:border-mid/50 transition-colors"
+                style={{
+                  flex: 1,
+                  padding: '14px',
+                  borderRadius: '0.625rem',
+                  backgroundColor: 'transparent',
+                  border: '1px solid var(--color-border)',
+                  fontFamily: "'DM Sans', system-ui, sans-serif",
+                  fontWeight: 400,
+                  fontSize: '13px',
+                  color: 'var(--color-mid)',
+                  cursor: 'pointer',
+                  opacity: isPending ? 0.5 : 1,
+                }}
               >
                 Not today
               </button>

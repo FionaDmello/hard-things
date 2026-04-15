@@ -6,6 +6,7 @@ import type { BreakHabit, Database } from '../types/database'
 import { ObservationLogger } from './ObservationLogger'
 
 type Checkin = Database['public']['Tables']['checkins']['Row']
+type Step = 'discernment' | 'occurred' | 'driver' | 'intensity' | 'note'
 
 interface Props {
   habit: BreakHabit
@@ -14,6 +15,48 @@ interface Props {
 function todayISO() {
   return new Date().toISOString().slice(0, 10)
 }
+
+// ─── Shared styles ────────────────────────────────────────────────────────────
+
+const inputStyle: React.CSSProperties = {
+  width: '100%',
+  backgroundColor: 'var(--color-canvas)',
+  border: '1px solid var(--color-border)',
+  borderRadius: '0.5rem',
+  padding: '10px 12px',
+  fontFamily: "'DM Sans', system-ui, sans-serif",
+  fontWeight: 300,
+  fontSize: '14px',
+  color: 'var(--color-primary)',
+  outline: 'none',
+  boxSizing: 'border-box' as const,
+}
+
+const btnPrimary: React.CSSProperties = {
+  fontFamily: "'DM Sans', system-ui, sans-serif",
+  fontWeight: 500,
+  fontSize: '12px',
+  letterSpacing: '0.12em',
+  textTransform: 'uppercase' as const,
+  color: 'var(--color-accent)',
+  background: 'none',
+  border: 'none',
+  padding: 0,
+  cursor: 'pointer',
+}
+
+const btnSecondary: React.CSSProperties = {
+  fontFamily: "'DM Sans', system-ui, sans-serif",
+  fontWeight: 400,
+  fontSize: '12px',
+  color: 'var(--color-mid)',
+  background: 'none',
+  border: 'none',
+  padding: 0,
+  cursor: 'pointer',
+}
+
+// ─── Root ─────────────────────────────────────────────────────────────────────
 
 export function CheckInFormBreak({ habit }: Props) {
   const [open, setOpen] = useState(false)
@@ -38,45 +81,49 @@ export function CheckInFormBreak({ habit }: Props) {
     enabled: !!user && !isObservationPhase,
   })
 
-  // Phase 1 — observation logger handles this habit, not check-in
-  if (isObservationPhase) {
-    return <ObservationLogger habit={habit} />
-  }
-
+  if (isObservationPhase) return <ObservationLogger habit={habit} />
   if (isLoading) return null
 
   if (existing) {
     return (
-      <div className="mt-3 p-3 bg-light border border-mid/20 rounded-lg text-sm">
-        <p className="text-mid mb-1">Today — logged</p>
-        <p className="text-primary font-medium">
-          {existing.occurred === false ? '● Clean' : '○ Slip'}
-        </p>
-        {existing.sentence_note && (
-          <p className="text-mid mt-1 italic">"{existing.sentence_note}"</p>
-        )}
+      <div style={{ marginTop: '12px' }}>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
+          <span style={{
+            fontFamily: "'DM Sans', system-ui, sans-serif",
+            fontWeight: 500,
+            fontSize: '13px',
+            color: existing.occurred === false ? 'var(--color-primary)' : 'var(--color-mid)',
+          }}>
+            {existing.occurred === false ? '● Clean' : '○ Slipped'}
+          </span>
+          {existing.sentence_note && (
+            <span style={{
+              fontFamily: "'Cormorant', Georgia, serif",
+              fontStyle: 'italic',
+              fontWeight: 300,
+              fontSize: '0.95rem',
+              color: 'var(--color-mid)',
+            }}>
+              — {existing.sentence_note}
+            </span>
+          )}
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="mt-3">
+    <div style={{ marginTop: '12px' }}>
       {!open ? (
-        <button
-          onClick={() => setOpen(true)}
-          className="text-sm text-accent hover:opacity-80"
-        >
-          Log today's check-in
+        <button onClick={() => setOpen(true)} style={btnPrimary}>
+          Log today
         </button>
       ) : (
         <CheckInForm
           habit={habit}
           userId={user!.id}
           today={today}
-          onSaved={() => {
-            queryClient.invalidateQueries({ queryKey })
-            setOpen(false)
-          }}
+          onSaved={() => { queryClient.invalidateQueries({ queryKey }); setOpen(false) }}
           onCancel={() => setOpen(false)}
         />
       )}
@@ -84,7 +131,7 @@ export function CheckInFormBreak({ habit }: Props) {
   )
 }
 
-// ─── Form ────────────────────────────────────────────────────────────────────
+// ─── Multi-step form ──────────────────────────────────────────────────────────
 
 interface FormProps {
   habit: BreakHabit
@@ -95,7 +142,7 @@ interface FormProps {
 }
 
 function CheckInForm({ habit, userId, today, onSaved, onCancel }: FormProps) {
-  const [step, setStep] = useState<'discernment' | 'form'>('discernment')
+  const [step, setStep] = useState<Step>('discernment')
   const [occurred, setOccurred] = useState<boolean | null>(null)
   const [jobIfSlipped, setJobIfSlipped] = useState('')
   const [replacementNote, setReplacementNote] = useState('')
@@ -110,160 +157,210 @@ function CheckInForm({ habit, userId, today, onSaved, onCancel }: FormProps) {
         date: today,
         section: 'break',
         occurred: occurred!,
-        job_if_slipped: occurred ? jobIfSlipped || null : null,
-        replacement_note: occurred ? replacementNote || null : null,
-        urge_intensity: occurred ? urgeIntensity : null,
-        sentence_note: sentenceNote || null,
+        job_if_slipped:    occurred ? jobIfSlipped    || null : null,
+        replacement_note:  occurred ? replacementNote || null : null,
+        urge_intensity:    occurred ? urgeIntensity        : null,
+        sentence_note:     sentenceNote || null,
       })
       if (error) throw error
     },
     onSuccess: onSaved,
   })
 
-  const canSave =
-    occurred !== null &&
-    (!occurred || (jobIfSlipped !== '' && urgeIntensity !== null)) &&
-    !isPending
+  const prompt: React.CSSProperties = {
+    fontFamily: "'Cormorant', Georgia, serif",
+    fontStyle: 'italic',
+    fontWeight: 300,
+    fontSize: '1.1rem',
+    color: 'var(--color-primary)',
+    lineHeight: 1.4,
+    marginBottom: '16px',
+  }
 
+  const actions = (onNext: () => void, nextLabel = 'Next', canNext = true) => (
+    <div style={{ display: 'flex', gap: '16px', alignItems: 'center', marginTop: '16px' }}>
+      <button
+        onClick={onNext}
+        disabled={!canNext}
+        style={{ ...btnPrimary, opacity: canNext ? 1 : 0.35 }}
+      >
+        {nextLabel}
+      </button>
+      <button onClick={onCancel} style={btnSecondary}>Cancel</button>
+    </div>
+  )
+
+  // ── Step: discernment ──
   if (step === 'discernment') {
     return (
-      <div className="mt-3 p-4 bg-accent-light border border-mid/20 rounded-lg space-y-4">
-        <p className="text-sm text-mid italic">{habit.discernment_question}</p>
-        <div className="flex gap-3">
+      <div style={{ marginTop: '12px' }}>
+        <p style={prompt}>{habit.discernment_question}</p>
+        {actions(() => setStep('occurred'))}
+      </div>
+    )
+  }
+
+  // ── Step: occurred ──
+  if (step === 'occurred') {
+    return (
+      <div style={{ marginTop: '12px' }}>
+        <p style={prompt}>Did it happen today?</p>
+        <div style={{ display: 'flex', gap: '8px' }}>
+          {[
+            { value: false, label: 'Clean' },
+            { value: true,  label: 'Slipped' },
+          ].map(({ value, label }) => {
+            const selected = occurred === value
+            return (
+              <button
+                key={label}
+                onClick={() => setOccurred(value)}
+                style={{
+                  flex: 1,
+                  padding: '10px',
+                  borderRadius: '0.5rem',
+                  border: `1px solid ${selected ? 'var(--color-accent)' : 'var(--color-border)'}`,
+                  backgroundColor: selected ? 'var(--color-canvas)' : 'transparent',
+                  fontFamily: "'DM Sans', system-ui, sans-serif",
+                  fontWeight: selected ? 500 : 400,
+                  fontSize: '13px',
+                  color: selected ? 'var(--color-primary)' : 'var(--color-mid)',
+                  cursor: 'pointer',
+                  transition: 'all 150ms ease',
+                }}
+              >
+                {label}
+              </button>
+            )
+          })}
+        </div>
+        {actions(
+          () => occurred ? setStep('driver') : setStep('note'),
+          'Continue',
+          occurred !== null,
+        )}
+      </div>
+    )
+  }
+
+  // ── Step: driver (slip only) ──
+  if (step === 'driver') {
+    return (
+      <div style={{ marginTop: '12px' }}>
+        <p style={prompt}>Which job was it doing?</p>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '4px' }}>
+          {habit.habit_drivers.map((driver) => {
+            const selected = jobIfSlipped === driver.key
+            return (
+              <button
+                key={driver.key}
+                onClick={() => setJobIfSlipped(driver.key)}
+                style={{
+                  padding: '8px 14px',
+                  borderRadius: '2rem',
+                  border: `1px solid ${selected ? 'var(--color-accent)' : 'var(--color-border)'}`,
+                  backgroundColor: selected ? 'var(--color-canvas)' : 'transparent',
+                  fontFamily: "'DM Sans', system-ui, sans-serif",
+                  fontWeight: selected ? 500 : 400,
+                  fontSize: '13px',
+                  color: selected ? 'var(--color-primary)' : 'var(--color-mid)',
+                  cursor: 'pointer',
+                  transition: 'all 150ms ease',
+                  whiteSpace: 'nowrap' as const,
+                }}
+              >
+                {driver.label}
+              </button>
+            )
+          })}
+        </div>
+        {actions(() => setStep('intensity'))}
+      </div>
+    )
+  }
+
+  // ── Step: urge intensity (slip only) ──
+  if (step === 'intensity') {
+    return (
+      <div style={{ marginTop: '12px' }}>
+        <p style={prompt}>
+          Urge intensity — {urgeIntensity !== null ? `${urgeIntensity} / 10` : '?'}
+        </p>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '6px' }}>
+          {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => {
+            const selected = urgeIntensity === n
+            return (
+              <button
+                key={n}
+                onClick={() => setUrgeIntensity(n)}
+                style={{
+                  padding: '10px 0',
+                  borderRadius: '0.5rem',
+                  border: `1px solid ${selected ? 'var(--color-accent)' : 'var(--color-border)'}`,
+                  backgroundColor: selected ? 'var(--color-canvas)' : 'transparent',
+                  fontFamily: "'DM Sans', system-ui, sans-serif",
+                  fontWeight: selected ? 500 : 400,
+                  fontSize: '13px',
+                  color: selected ? 'var(--color-primary)' : 'var(--color-mid)',
+                  cursor: 'pointer',
+                  transition: 'all 150ms ease',
+                }}
+              >
+                {n}
+              </button>
+            )
+          })}
+        </div>
+        <div style={{ marginTop: '12px' }}>
+          <label style={{
+            fontFamily: "'DM Sans', system-ui, sans-serif",
+            fontWeight: 500,
+            fontSize: '11px',
+            letterSpacing: '0.12em',
+            textTransform: 'uppercase',
+            color: 'var(--color-mid)',
+            display: 'block',
+            marginBottom: '8px',
+          }}>
+            What replacement was available? (optional)
+          </label>
+          <input
+            type="text"
+            value={replacementNote}
+            onChange={(e) => setReplacementNote(e.target.value)}
+            style={inputStyle}
+          />
+        </div>
+        {actions(() => setStep('note'))}
+      </div>
+    )
+  }
+
+  // ── Step: note (final for both paths) ──
+  if (step === 'note') {
+    return (
+      <div style={{ marginTop: '12px' }}>
+        <p style={prompt}>One sentence.</p>
+        <input
+          type="text"
+          value={sentenceNote}
+          onChange={(e) => setSentenceNote(e.target.value)}
+          autoFocus
+          style={inputStyle}
+        />
+        <div style={{ display: 'flex', gap: '16px', alignItems: 'center', marginTop: '16px' }}>
           <button
-            onClick={() => setStep('form')}
-            className="px-4 py-1.5 bg-primary text-light text-sm rounded-lg"
+            onClick={() => save()}
+            disabled={isPending}
+            style={{ ...btnPrimary, opacity: isPending ? 0.5 : 1 }}
           >
-            Continue
+            {isPending ? 'Saving...' : 'Save'}
           </button>
-          <button
-            onClick={onCancel}
-            className="px-4 py-1.5 text-mid text-sm hover:text-primary"
-          >
-            Cancel
-          </button>
+          <button onClick={onCancel} style={btnSecondary}>Cancel</button>
         </div>
       </div>
     )
   }
 
-  return (
-    <div className="mt-3 p-4 bg-accent-light border border-mid/20 rounded-lg space-y-4">
-
-      {/* Did it occur? */}
-      <div>
-        <p className="text-sm font-medium text-primary mb-2">Did it happen today?</p>
-        <div className="flex gap-2">
-          <button
-            onClick={() => setOccurred(true)}
-            className={`flex-1 py-2 rounded-lg border text-sm transition-all ${
-              occurred === true
-                ? 'border-accent bg-light font-medium'
-                : 'border-mid/20 hover:border-mid/40'
-            }`}
-          >
-            Yes — slipped
-          </button>
-          <button
-            onClick={() => setOccurred(false)}
-            className={`flex-1 py-2 rounded-lg border text-sm transition-all ${
-              occurred === false
-                ? 'border-accent bg-light font-medium'
-                : 'border-mid/20 hover:border-mid/40'
-            }`}
-          >
-            No — clean
-          </button>
-        </div>
-      </div>
-
-      {/* Slip fields */}
-      {occurred === true && (
-        <>
-          {/* Which job */}
-          <div>
-            <p className="text-sm font-medium text-primary mb-2">Which job was it doing?</p>
-            <div className="flex flex-wrap gap-2">
-              {habit.habit_drivers.map((driver) => (
-                <button
-                  key={driver.key}
-                  onClick={() => setJobIfSlipped(driver.key)}
-                  className={`px-3 py-1.5 rounded-lg border text-sm transition-all ${
-                    jobIfSlipped === driver.key
-                      ? 'border-accent bg-light font-medium'
-                      : 'border-mid/20 hover:border-mid/40'
-                  }`}
-                >
-                  {driver.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Replacement note */}
-          <div>
-            <label className="block text-sm text-primary mb-1">
-              What replacement was available or unavailable?
-            </label>
-            <textarea
-              value={replacementNote}
-              onChange={(e) => setReplacementNote(e.target.value)}
-              rows={2}
-              className="w-full px-3 py-2 text-sm rounded-lg border border-mid/30 bg-light focus:outline-none focus:border-accent resize-none"
-            />
-          </div>
-
-          {/* Urge intensity */}
-          <div>
-            <p className="text-sm font-medium text-primary mb-2">
-              Urge intensity — {urgeIntensity ?? '?'} / 10
-            </p>
-            <div className="flex gap-1">
-              {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
-                <button
-                  key={n}
-                  onClick={() => setUrgeIntensity(n)}
-                  className={`flex-1 py-1.5 rounded text-xs border transition-all ${
-                    urgeIntensity === n
-                      ? 'bg-primary text-light border-primary'
-                      : 'border-mid/20 text-mid hover:border-mid/40'
-                  }`}
-                >
-                  {n}
-                </button>
-              ))}
-            </div>
-          </div>
-        </>
-      )}
-
-      {/* One sentence note */}
-      <div>
-        <label className="block text-sm text-primary mb-1">One sentence.</label>
-        <input
-          type="text"
-          value={sentenceNote}
-          onChange={(e) => setSentenceNote(e.target.value)}
-          className="w-full px-3 py-2 text-sm rounded-lg border border-mid/30 bg-light focus:outline-none focus:border-accent"
-        />
-      </div>
-
-      <div className="flex gap-3">
-        <button
-          onClick={() => save()}
-          disabled={!canSave}
-          className="px-4 py-1.5 bg-primary text-light text-sm rounded-lg disabled:opacity-50"
-        >
-          {isPending ? 'Saving...' : 'Save'}
-        </button>
-        <button
-          onClick={onCancel}
-          className="px-4 py-1.5 text-mid text-sm hover:text-primary"
-        >
-          Cancel
-        </button>
-      </div>
-
-    </div>
-  )
+  return null
 }

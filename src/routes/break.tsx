@@ -2,7 +2,7 @@ import { createFileRoute, Link } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '../lib/supabase'
 import { HabitReferenceCard } from '../components/HabitReferenceCard'
-import { CheckInFormBreak } from '../components/CheckInFormBreak'
+import { ObservationLogger } from '../components/ObservationLogger'
 import type { BreakHabit } from '../types/database'
 
 export const Route = createFileRoute('/break')({
@@ -12,7 +12,13 @@ export const Route = createFileRoute('/break')({
 const PHASE_LABELS: Record<string, string> = {
   phase_1_observe: 'Observing',
   phase_2_replace: 'Replacing',
-  phase_3_quit: 'Quitting',
+  phase_3_quit:    'Quitting',
+}
+
+const PHASE_DESCRIPTION: Record<string, string> = {
+  phase_1_observe: 'Log every instance. The goal is to identify patterns, triggers, and what job the habit is doing — not to stop yet.',
+  phase_2_replace: 'Execute the replacement protocol when an urge or instance occurs. The habit still happens; the replacement is practised alongside it.',
+  phase_3_quit:    'The replacement is the full response. The habit no longer has a sanctioned role.',
 }
 
 function BreakHabits() {
@@ -28,55 +34,121 @@ function BreakHabits() {
   if (isLoading) return null
 
   return (
-    <div className="max-w-lg mx-auto px-6 pt-14 pb-24">
-      <Link to="/" className="inline-flex items-center gap-1.5 text-xs text-mid hover:text-primary transition-colors mb-10">
+    <div className="max-w-lg mx-auto px-6 pt-24 pb-24">
+
+      <Link
+        to="/"
+        style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: '6px',
+          fontFamily: "'DM Sans', system-ui, sans-serif",
+          fontWeight: 400,
+          fontSize: '12px',
+          letterSpacing: '0.12em',
+          textTransform: 'uppercase',
+          color: 'var(--color-mid)',
+          textDecoration: 'none',
+          marginBottom: '40px',
+        }}
+      >
         <span>←</span>
-        <span className="uppercase tracking-[0.15em]">Dashboard</span>
+        <span>Today</span>
       </Link>
 
       <header className="mb-10">
+        <p className="eyebrow mb-2">Break</p>
         <h1
-          className="text-primary leading-tight"
-          style={{ fontFamily: "'Cormorant', Georgia, serif", fontWeight: 300, fontSize: 'clamp(2.4rem, 8vw, 3.2rem)' }}
+          className="display"
+          style={{ fontSize: 'clamp(2.4rem, 8vw, 3.2rem)' }}
         >
-          Break
+          Reduce · Investigate · Replace
         </h1>
-        <p className="text-xs uppercase tracking-[0.2em] text-mid mt-2">Reduce · Investigate · Replace</p>
-        <div className="mt-6 h-px bg-mid/20" />
       </header>
 
       {habits.length === 0 ? (
-        <p className="text-sm text-mid italic">Nothing configured yet.</p>
+        <p style={{
+          fontFamily: "'DM Sans', system-ui, sans-serif",
+          fontWeight: 300,
+          fontSize: '14px',
+          color: 'var(--color-mid)',
+          fontStyle: 'italic',
+        }}>
+          Nothing configured yet.
+        </p>
       ) : (
-        <div className="space-y-6">
+        <div className="space-y-8">
           {habits.map((habit) => (
-            <div
-              key={habit.id}
-              className="bg-accent-light rounded-xl border border-mid/20 overflow-hidden"
-            >
-              <div className="px-5 pt-5 pb-4 flex items-start justify-between gap-4">
-                <h2
-                  className="text-primary leading-snug"
-                  style={{ fontFamily: "'Cormorant', Georgia, serif", fontWeight: 400, fontSize: '1.35rem' }}
-                >
-                  {habit.name}
-                </h2>
-                {habit.current_phase && (
-                  <span className="flex-shrink-0 text-xs uppercase tracking-[0.15em] text-accent pt-0.5">
-                    {PHASE_LABELS[habit.current_phase] ?? habit.current_phase}
-                  </span>
-                )}
-              </div>
-
-              <div className="px-5 pb-5">
-                <CheckInFormBreak habit={habit} />
-                <div className="mt-5 h-px bg-mid/15" />
-                <HabitReferenceCard habit={habit} />
-              </div>
-            </div>
+            <HabitSection key={habit.id} habit={habit} />
           ))}
         </div>
       )}
+    </div>
+  )
+}
+
+function HabitSection({ habit }: { habit: BreakHabit }) {
+  const phase = habit.current_phase
+
+  return (
+    <div>
+      {/* Habit header */}
+      <div style={{
+        display: 'flex',
+        alignItems: 'flex-start',
+        justifyContent: 'space-between',
+        gap: '12px',
+        marginBottom: '8px',
+      }}>
+        <h2
+          className="display"
+          style={{ fontSize: 'clamp(1.5rem, 5vw, 1.9rem)' }}
+        >
+          {habit.name}
+        </h2>
+        {phase && (
+          <span className="eyebrow" style={{ color: 'var(--color-mid)', paddingTop: '4px', flexShrink: 0 }}>
+            {PHASE_LABELS[phase]}
+          </span>
+        )}
+      </div>
+
+      {/* Phase description */}
+      {phase && PHASE_DESCRIPTION[phase] && (
+        <p style={{
+          fontFamily: "'DM Sans', system-ui, sans-serif",
+          fontWeight: 300,
+          fontSize: '13px',
+          color: 'var(--color-mid)',
+          lineHeight: 1.6,
+          marginBottom: '20px',
+        }}>
+          {PHASE_DESCRIPTION[phase]}
+        </p>
+      )}
+
+      {/* Observation logger — phase 1 only */}
+      {phase === 'phase_1_observe' && (
+        <div style={{
+          backgroundColor: 'var(--color-card)',
+          border: '1px solid var(--color-border)',
+          borderRadius: '0.75rem',
+          padding: '20px',
+          marginBottom: '12px',
+        }}>
+          <ObservationLogger habit={habit} />
+        </div>
+      )}
+
+      {/* Reference card */}
+      <div style={{
+        backgroundColor: 'var(--color-card)',
+        border: '1px solid var(--color-border)',
+        borderRadius: '0.75rem',
+        padding: '20px',
+      }}>
+        <HabitReferenceCard habit={habit} />
+      </div>
     </div>
   )
 }

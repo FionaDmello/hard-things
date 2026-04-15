@@ -9,7 +9,7 @@ export type Json =
 export type HabitSection = 'break' | 'build'
 export type HabitPhase = 'phase_1_observe' | 'phase_2_replace' | 'phase_3_quit'
 export type PracticeLevel = 'full' | 'minimum' | 'non_negotiable' | 'missed'
-export type Theme = 'sage-terracotta' | 'amber-plum' | 'midnight-gold' | 'rose-charcoal'
+export type Theme = 'dark' | 'light'
 
 // Makes nullable fields optional for inserts
 type InsertOf<T> = {

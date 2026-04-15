@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as UnderstandRouteImport } from './routes/understand'
 import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as ReviewRouteImport } from './routes/review'
 import { Route as BuildRouteImport } from './routes/build'
 import { Route as BreakRouteImport } from './routes/break'
 import { Route as IndexRouteImport } from './routes/index'
@@ -23,6 +24,11 @@ const UnderstandRoute = UnderstandRouteImport.update({
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReviewRoute = ReviewRouteImport.update({
+  id: '/review',
+  path: '/review',
   getParentRoute: () => rootRouteImport,
 } as any)
 const BuildRoute = BuildRouteImport.update({
@@ -45,6 +51,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/break': typeof BreakRoute
   '/build': typeof BuildRoute
+  '/review': typeof ReviewRoute
   '/settings': typeof SettingsRoute
   '/understand': typeof UnderstandRoute
 }
@@ -52,6 +59,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/break': typeof BreakRoute
   '/build': typeof BuildRoute
+  '/review': typeof ReviewRoute
   '/settings': typeof SettingsRoute
   '/understand': typeof UnderstandRoute
 }
@@ -60,21 +68,30 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/break': typeof BreakRoute
   '/build': typeof BuildRoute
+  '/review': typeof ReviewRoute
   '/settings': typeof SettingsRoute
   '/understand': typeof UnderstandRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/break' | '/build' | '/settings' | '/understand'
+  fullPaths: '/' | '/break' | '/build' | '/review' | '/settings' | '/understand'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/break' | '/build' | '/settings' | '/understand'
-  id: '__root__' | '/' | '/break' | '/build' | '/settings' | '/understand'
+  to: '/' | '/break' | '/build' | '/review' | '/settings' | '/understand'
+  id:
+    | '__root__'
+    | '/'
+    | '/break'
+    | '/build'
+    | '/review'
+    | '/settings'
+    | '/understand'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   BreakRoute: typeof BreakRoute
   BuildRoute: typeof BuildRoute
+  ReviewRoute: typeof ReviewRoute
   SettingsRoute: typeof SettingsRoute
   UnderstandRoute: typeof UnderstandRoute
 }
@@ -93,6 +110,13 @@ declare module '@tanstack/react-router' {
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/review': {
+      id: '/review'
+      path: '/review'
+      fullPath: '/review'
+      preLoaderRoute: typeof ReviewRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/build': {
@@ -123,6 +147,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   BreakRoute: BreakRoute,
   BuildRoute: BuildRoute,
+  ReviewRoute: ReviewRoute,
   SettingsRoute: SettingsRoute,
   UnderstandRoute: UnderstandRoute,
 }

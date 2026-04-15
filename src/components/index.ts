@@ -1,6 +1,5 @@
 export { AuthForm } from './AuthForm'
 export { Dashboard } from './Dashboard'
-export { ThemePicker } from './ThemePicker'
 export { HabitReferenceCard } from './HabitReferenceCard'
 export { NightBeforePrompt } from './NightBeforePrompt'
 export { CheckInFormBuild } from './CheckInFormBuild'

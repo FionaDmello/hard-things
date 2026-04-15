@@ -6,7 +6,6 @@ import type { Database } from '../types/database'
 
 type WeeklyReview = Database['public']['Tables']['weekly_reviews']['Row']
 
-// Most recent Sunday as week start
 function getWeekStartDate(): string {
   const d = new Date()
   d.setDate(d.getDate() - d.getDay())
@@ -23,10 +22,71 @@ function formatWeekLabel(dateStr: string): string {
 }
 
 const STEPS = [
-  { key: 'what_i_did',      prompt: 'What did I actually do this week?' },
-  { key: 'what_got_in_way', prompt: 'What got in the way on the days I missed or slipped?' },
+  { key: 'what_i_did',       prompt: 'What did I actually do this week?' },
+  { key: 'what_got_in_way',  prompt: 'What got in the way on the days I missed or slipped?' },
   { key: 'carrying_forward', prompt: 'What am I carrying into next week?' },
 ]
+
+// ─── Shared styles ────────────────────────────────────────────────────────────
+
+const card: React.CSSProperties = {
+  backgroundColor: 'var(--color-card)',
+  border: '1px solid var(--color-border)',
+  borderRadius: '0.75rem',
+  padding: '20px',
+}
+
+const inputStyle: React.CSSProperties = {
+  width: '100%',
+  backgroundColor: 'var(--color-canvas)',
+  border: '1px solid var(--color-border)',
+  borderRadius: '0.5rem',
+  padding: '10px 12px',
+  fontFamily: "'DM Sans', system-ui, sans-serif",
+  fontWeight: 300,
+  fontSize: '14px',
+  color: 'var(--color-primary)',
+  outline: 'none',
+  resize: 'none' as const,
+  boxSizing: 'border-box' as const,
+}
+
+const labelStyle: React.CSSProperties = {
+  fontFamily: "'DM Sans', system-ui, sans-serif",
+  fontWeight: 500,
+  fontSize: '11px',
+  letterSpacing: '0.12em',
+  textTransform: 'uppercase' as const,
+  color: 'var(--color-mid)',
+  display: 'block',
+  marginBottom: '8px',
+}
+
+const btnPrimary: React.CSSProperties = {
+  fontFamily: "'DM Sans', system-ui, sans-serif",
+  fontWeight: 500,
+  fontSize: '12px',
+  letterSpacing: '0.12em',
+  textTransform: 'uppercase',
+  color: 'var(--color-accent)',
+  background: 'none',
+  border: 'none',
+  padding: 0,
+  cursor: 'pointer',
+}
+
+const btnSecondary: React.CSSProperties = {
+  fontFamily: "'DM Sans', system-ui, sans-serif",
+  fontWeight: 400,
+  fontSize: '12px',
+  color: 'var(--color-mid)',
+  background: 'none',
+  border: 'none',
+  padding: 0,
+  cursor: 'pointer',
+}
+
+// ─── Root component ───────────────────────────────────────────────────────────
 
 export function WeeklyReview() {
   const [open, setOpen] = useState(false)
@@ -64,22 +124,63 @@ export function WeeklyReview() {
     enabled: !!user && showHistory,
   })
 
+  // This week completed
   if (thisWeek && !open) {
     return (
-      <div className="mb-8">
-        <div className="p-4 bg-accent-light border border-mid/20 rounded-lg">
-          <p className="text-sm text-mid mb-1">Weekly review — week of {formatWeekLabel(weekStart)}</p>
-          <p className="text-primary text-sm italic">"{thisWeek.sentence_practiced}"</p>
+      <div>
+        <div style={card}>
+          <p className="eyebrow" style={{ marginBottom: '12px' }}>
+            Week of {formatWeekLabel(weekStart)}
+          </p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '16px' }}>
+            {thisWeek.sentence_practiced && (
+              <p style={{
+                fontFamily: "'Cormorant', Georgia, serif",
+                fontStyle: 'italic',
+                fontWeight: 300,
+                fontSize: '1.05rem',
+                color: 'var(--color-primary)',
+                lineHeight: 1.5,
+              }}>
+                "{thisWeek.sentence_practiced}"
+              </p>
+            )}
+            {thisWeek.sentence_hard && (
+              <p style={{
+                fontFamily: "'Cormorant', Georgia, serif",
+                fontStyle: 'italic',
+                fontWeight: 300,
+                fontSize: '1.05rem',
+                color: 'var(--color-mid)',
+                lineHeight: 1.5,
+              }}>
+                "{thisWeek.sentence_hard}"
+              </p>
+            )}
+            {thisWeek.sentence_carrying && (
+              <p style={{
+                fontFamily: "'Cormorant', Georgia, serif",
+                fontStyle: 'italic',
+                fontWeight: 300,
+                fontSize: '1.05rem',
+                color: 'var(--color-mid)',
+                lineHeight: 1.5,
+              }}>
+                "{thisWeek.sentence_carrying}"
+              </p>
+            )}
+          </div>
           <button
             onClick={() => setShowHistory((s) => !s)}
-            className="mt-3 text-sm text-mid hover:text-primary"
+            style={btnSecondary}
           >
-            {showHistory ? 'Hide history' : 'View past reviews'}
+            {showHistory ? 'Hide past reviews' : 'Past reviews'}
           </button>
         </div>
-        {showHistory && history && (
-          <div className="mt-3 space-y-3">
-            {history.map((review) => (
+
+        {showHistory && history && history.length > 0 && (
+          <div style={{ marginTop: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            {history.filter(r => r.id !== thisWeek.id).map((review) => (
               <ReviewEntry key={review.id} review={review} />
             ))}
           </div>
@@ -88,28 +189,33 @@ export function WeeklyReview() {
     )
   }
 
+  // Not yet written
   return (
-    <div className="mb-8">
+    <div>
       {!open ? (
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => setOpen(true)}
-            className={`text-sm px-4 py-2 rounded-lg ${
-              isSunday
-                ? 'bg-primary text-light'
-                : 'bg-accent-light text-primary border border-mid/20'
-            }`}
-          >
-            {isSunday ? 'Weekly review — today' : 'Write weekly review'}
-          </button>
-          {history && history.length > 0 && (
-            <button
-              onClick={() => setShowHistory((s) => !s)}
-              className="text-sm text-mid hover:text-primary"
-            >
-              {showHistory ? 'Hide history' : 'Past reviews'}
+        <div style={card}>
+          <p style={{
+            fontFamily: "'Cormorant', Georgia, serif",
+            fontStyle: 'italic',
+            fontWeight: 300,
+            fontSize: '1.05rem',
+            color: 'var(--color-mid)',
+            marginBottom: '16px',
+          }}>
+            {isSunday
+              ? 'Today is Sunday. A good time to close the week.'
+              : `Week of ${formatWeekLabel(weekStart)}.`}
+          </p>
+          <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+            <button onClick={() => setOpen(true)} style={btnPrimary}>
+              {isSunday ? 'Write review' : 'Write review'}
             </button>
-          )}
+            {!showHistory && (
+              <button onClick={() => setShowHistory(true)} style={btnSecondary}>
+                Past reviews
+              </button>
+            )}
+          </div>
         </div>
       ) : (
         <ReviewForm
@@ -123,8 +229,9 @@ export function WeeklyReview() {
           onCancel={() => setOpen(false)}
         />
       )}
-      {showHistory && history && (
-        <div className="mt-3 space-y-3">
+
+      {showHistory && history && history.length > 0 && (
+        <div style={{ marginTop: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
           {history.map((review) => (
             <ReviewEntry key={review.id} review={review} />
           ))}
@@ -134,7 +241,7 @@ export function WeeklyReview() {
   )
 }
 
-// ─── Review Form ─────────────────────────────────────────────────────────────
+// ─── Review Form ──────────────────────────────────────────────────────────────
 
 interface FormProps {
   userId: string
@@ -145,7 +252,7 @@ interface FormProps {
 
 function ReviewForm({ userId, weekStart, onSaved, onCancel }: FormProps) {
   const [stepIndex, setStepIndex] = useState(0)
-  const [showTransition, setShowTransition] = useState(false)
+  const [showSentences, setShowSentences] = useState(false)
   const [answers, setAnswers] = useState<Record<string, string>>({
     what_i_did: '',
     what_got_in_way: '',
@@ -160,12 +267,12 @@ function ReviewForm({ userId, weekStart, onSaved, onCancel }: FormProps) {
       const { error } = await supabase.from('weekly_reviews').insert({
         user_id: userId,
         week_start_date: weekStart,
-        what_i_did: answers.what_i_did || null,
-        what_got_in_way: answers.what_got_in_way || null,
-        carrying_forward: answers.carrying_forward || null,
-        sentence_practiced: answers.sentence_practiced || null,
-        sentence_hard: answers.sentence_hard || null,
-        sentence_carrying: answers.sentence_carrying || null,
+        what_i_did:          answers.what_i_did          || null,
+        what_got_in_way:     answers.what_got_in_way     || null,
+        carrying_forward:    answers.carrying_forward    || null,
+        sentence_practiced:  answers.sentence_practiced  || null,
+        sentence_hard:       answers.sentence_hard       || null,
+        sentence_carrying:   answers.sentence_carrying   || null,
       })
       if (error) throw error
     },
@@ -176,120 +283,124 @@ function ReviewForm({ userId, weekStart, onSaved, onCancel }: FormProps) {
     setAnswers((a) => ({ ...a, [key]: value }))
   }
 
-  // Steps 0-2: reflection prompts
+  // Reflection steps
   if (stepIndex < STEPS.length) {
     const step = STEPS[stepIndex]
-    const isLastReflection = stepIndex === STEPS.length - 1
+    const isLast = stepIndex === STEPS.length - 1
     return (
-      <div className="p-4 bg-accent-light border border-mid/20 rounded-lg space-y-4">
-        <p className="text-sm text-mid">Reflection {stepIndex + 1} of {STEPS.length}</p>
-        <p className="font-medium text-primary">{step.prompt}</p>
+      <div style={card}>
+        <p className="eyebrow" style={{ marginBottom: '16px' }}>
+          Reflection {stepIndex + 1} of {STEPS.length}
+        </p>
+        <p style={{
+          fontFamily: "'Cormorant', Georgia, serif",
+          fontStyle: 'italic',
+          fontWeight: 300,
+          fontSize: '1.15rem',
+          color: 'var(--color-primary)',
+          marginBottom: '16px',
+          lineHeight: 1.4,
+        }}>
+          {step.prompt}
+        </p>
         <textarea
           value={answers[step.key]}
           onChange={(e) => setAnswer(step.key, e.target.value)}
           rows={4}
           autoFocus
-          className="w-full px-3 py-2 text-sm rounded-lg border border-mid/30 bg-light focus:outline-none focus:border-accent resize-none"
+          style={{ ...inputStyle, marginBottom: '16px' }}
         />
-        <div className="flex gap-3">
+        <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
           <button
             onClick={() => {
-              if (isLastReflection) {
-                setStepIndex((i) => i + 1)
-                setShowTransition(true)
-              } else {
-                setStepIndex((i) => i + 1)
-              }
+              if (isLast) setShowSentences(true)
+              setStepIndex((i) => i + 1)
             }}
-            className="px-4 py-1.5 bg-primary text-light text-sm rounded-lg"
+            style={btnPrimary}
           >
-            Next
+            {isLast ? 'Continue' : 'Next'}
           </button>
-          <button
-            onClick={onCancel}
-            className="px-4 py-1.5 text-mid text-sm hover:text-primary"
-          >
-            Cancel
-          </button>
+          <button onClick={onCancel} style={btnSecondary}>Cancel</button>
         </div>
       </div>
     )
   }
 
-  // Transition screen
-  if (showTransition) {
+  // Transition
+  if (!showSentences) {
     return (
-      <div className="p-4 bg-accent-light border border-mid/20 rounded-lg space-y-4">
-        <p className="font-medium text-primary">Now distill it into three sentences.</p>
-        <p className="text-sm text-mid">These will be shown on your dashboard as a reminder of the week.</p>
-        <div className="flex gap-3">
-          <button
-            onClick={() => setShowTransition(false)}
-            className="px-4 py-1.5 bg-primary text-light text-sm rounded-lg"
-          >
-            Continue
-          </button>
-          <button
-            onClick={onCancel}
-            className="px-4 py-1.5 text-mid text-sm hover:text-primary"
-          >
-            Cancel
-          </button>
+      <div style={card}>
+        <p style={{
+          fontFamily: "'Cormorant', Georgia, serif",
+          fontStyle: 'italic',
+          fontWeight: 300,
+          fontSize: '1.15rem',
+          color: 'var(--color-primary)',
+          marginBottom: '8px',
+        }}>
+          Now distill it into three sentences.
+        </p>
+        <p style={{
+          fontFamily: "'DM Sans', system-ui, sans-serif",
+          fontWeight: 300,
+          fontSize: '13px',
+          color: 'var(--color-mid)',
+          marginBottom: '20px',
+        }}>
+          These stay with you as a summary of the week.
+        </p>
+        <div style={{ display: 'flex', gap: '16px' }}>
+          <button onClick={() => setShowSentences(true)} style={btnPrimary}>Continue</button>
+          <button onClick={onCancel} style={btnSecondary}>Cancel</button>
         </div>
       </div>
     )
   }
 
-  // Summary step
+  // Three sentences
   return (
-    <div className="p-4 bg-accent-light border border-mid/20 rounded-lg space-y-4">
-      <p className="text-sm text-mid">Summary</p>
-      <p className="font-medium text-primary">Three sentences to close the week.</p>
+    <div style={card}>
+      <p className="eyebrow" style={{ marginBottom: '20px' }}>Three sentences</p>
 
-      <div className="space-y-3">
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '20px' }}>
         <div>
-          <label className="block text-sm text-primary mb-1">What I practiced this week.</label>
+          <label style={labelStyle}>What I practised this week.</label>
           <input
             type="text"
             value={answers.sentence_practiced}
             onChange={(e) => setAnswer('sentence_practiced', e.target.value)}
-            className="w-full px-3 py-2 text-sm rounded-lg border border-mid/30 bg-light focus:outline-none focus:border-accent"
+            style={inputStyle}
           />
         </div>
         <div>
-          <label className="block text-sm text-primary mb-1">What was hard.</label>
+          <label style={labelStyle}>What was hard.</label>
           <input
             type="text"
             value={answers.sentence_hard}
             onChange={(e) => setAnswer('sentence_hard', e.target.value)}
-            className="w-full px-3 py-2 text-sm rounded-lg border border-mid/30 bg-light focus:outline-none focus:border-accent"
+            style={inputStyle}
           />
         </div>
         <div>
-          <label className="block text-sm text-primary mb-1">What I am carrying forward.</label>
+          <label style={labelStyle}>What I am carrying forward.</label>
           <input
             type="text"
             value={answers.sentence_carrying}
             onChange={(e) => setAnswer('sentence_carrying', e.target.value)}
-            className="w-full px-3 py-2 text-sm rounded-lg border border-mid/30 bg-light focus:outline-none focus:border-accent"
+            style={inputStyle}
           />
         </div>
       </div>
 
-      <div className="flex gap-3">
+      <div style={{ display: 'flex', gap: '16px' }}>
         <button
           onClick={() => save()}
           disabled={isPending}
-          className="px-4 py-1.5 bg-primary text-light text-sm rounded-lg disabled:opacity-50"
+          style={{ ...btnPrimary, opacity: isPending ? 0.5 : 1 }}
         >
           {isPending ? 'Saving...' : 'Save'}
         </button>
-        <button
-          onClick={onCancel}
-          className="px-4 py-1.5 text-mid text-sm hover:text-primary"
-        >
-          Cancel
-        </button>
+        <button onClick={onCancel} style={btnSecondary}>Cancel</button>
       </div>
     </div>
   )
@@ -301,39 +412,134 @@ function ReviewEntry({ review }: { review: WeeklyReview }) {
   const [open, setOpen] = useState(false)
 
   return (
-    <div className="border border-mid/20 rounded-lg overflow-hidden">
+    <div style={{
+      backgroundColor: 'var(--color-card)',
+      border: '1px solid var(--color-border)',
+      borderRadius: '0.75rem',
+      overflow: 'hidden',
+    }}>
       <button
         onClick={() => setOpen((o) => !o)}
-        className="w-full flex justify-between items-center p-3 text-left bg-accent-light hover:bg-mid/10"
+        style={{
+          width: '100%',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          padding: '16px 20px',
+          background: 'none',
+          border: 'none',
+          cursor: 'pointer',
+          textAlign: 'left',
+        }}
       >
-        <span className="text-sm text-primary">Week of {formatWeekLabel(review.week_start_date)}</span>
-        <span className="text-mid text-xs">{open ? '▲' : '▼'}</span>
+        <span style={{
+          fontFamily: "'DM Sans', system-ui, sans-serif",
+          fontWeight: 400,
+          fontSize: '13px',
+          color: 'var(--color-primary)',
+        }}>
+          Week of {formatWeekLabel(review.week_start_date)}
+        </span>
+        <span style={{
+          fontFamily: "'DM Sans', system-ui, sans-serif",
+          fontSize: '12px',
+          color: 'var(--color-mid)',
+          transition: 'transform 200ms ease',
+          display: 'inline-block',
+          transform: open ? 'rotate(45deg)' : 'rotate(0deg)',
+        }}>
+          +
+        </span>
       </button>
+
       {open && (
-        <div className="p-4 space-y-3 text-sm bg-light">
+        <div style={{ padding: '0 20px 20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
           {review.what_i_did && (
             <div>
-              <p className="text-mid text-xs mb-1">What I actually did</p>
-              <p className="text-primary">{review.what_i_did}</p>
+              <p style={{ ...labelStyle, marginBottom: '4px' }}>What I actually did</p>
+              <p style={{
+                fontFamily: "'DM Sans', system-ui, sans-serif",
+                fontWeight: 300,
+                fontSize: '13px',
+                color: 'var(--color-primary)',
+                lineHeight: 1.6,
+              }}>
+                {review.what_i_did}
+              </p>
             </div>
           )}
           {review.what_got_in_way && (
             <div>
-              <p className="text-mid text-xs mb-1">What got in the way</p>
-              <p className="text-primary">{review.what_got_in_way}</p>
+              <p style={{ ...labelStyle, marginBottom: '4px' }}>What got in the way</p>
+              <p style={{
+                fontFamily: "'DM Sans', system-ui, sans-serif",
+                fontWeight: 300,
+                fontSize: '13px',
+                color: 'var(--color-primary)',
+                lineHeight: 1.6,
+              }}>
+                {review.what_got_in_way}
+              </p>
             </div>
           )}
           {review.carrying_forward && (
             <div>
-              <p className="text-mid text-xs mb-1">Carrying into next week</p>
-              <p className="text-primary">{review.carrying_forward}</p>
+              <p style={{ ...labelStyle, marginBottom: '4px' }}>Carrying into next week</p>
+              <p style={{
+                fontFamily: "'DM Sans', system-ui, sans-serif",
+                fontWeight: 300,
+                fontSize: '13px',
+                color: 'var(--color-primary)',
+                lineHeight: 1.6,
+              }}>
+                {review.carrying_forward}
+              </p>
             </div>
           )}
           {(review.sentence_practiced || review.sentence_hard || review.sentence_carrying) && (
-            <div className="pt-2 border-t border-mid/20 space-y-1">
-              {review.sentence_practiced && <p className="text-primary italic">"{review.sentence_practiced}"</p>}
-              {review.sentence_hard && <p className="text-primary italic">"{review.sentence_hard}"</p>}
-              {review.sentence_carrying && <p className="text-primary italic">"{review.sentence_carrying}"</p>}
+            <div style={{
+              paddingTop: '12px',
+              borderTop: '1px solid var(--color-border)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '4px',
+            }}>
+              {review.sentence_practiced && (
+                <p style={{
+                  fontFamily: "'Cormorant', Georgia, serif",
+                  fontStyle: 'italic',
+                  fontWeight: 300,
+                  fontSize: '1rem',
+                  color: 'var(--color-primary)',
+                  lineHeight: 1.5,
+                }}>
+                  "{review.sentence_practiced}"
+                </p>
+              )}
+              {review.sentence_hard && (
+                <p style={{
+                  fontFamily: "'Cormorant', Georgia, serif",
+                  fontStyle: 'italic',
+                  fontWeight: 300,
+                  fontSize: '1rem',
+                  color: 'var(--color-mid)',
+                  lineHeight: 1.5,
+                }}>
+                  "{review.sentence_hard}"
+                </p>
+              )}
+              {review.sentence_carrying && (
+                <p style={{
+                  fontFamily: "'Cormorant', Georgia, serif",
+                  fontStyle: 'italic',
+                  fontWeight: 300,
+                  fontSize: '1rem',
+                  color: 'var(--color-mid)',
+                  lineHeight: 1.5,
+                }}>
+                  "{review.sentence_carrying}"
+                </p>
+              )}
             </div>
           )}
         </div>

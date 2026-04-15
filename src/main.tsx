@@ -5,12 +5,13 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { routeTree } from './routeTree.gen'
 import { supabase } from './lib/supabase'
 import { useAuthStore, useThemeStore } from './stores'
+import type { Theme } from './types/database'
 import './index.css'
 
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 1000 * 60 * 5, // 5 minutes
+      staleTime: 1000 * 60 * 5,
     },
   },
 })
@@ -25,7 +26,7 @@ declare module '@tanstack/react-router' {
 
 function AuthProvider({ children }: { children: React.ReactNode }) {
   const { setSession, setIsLoading } = useAuthStore()
-  const { setTheme, setHasSelectedTheme } = useThemeStore()
+  const { setTheme } = useThemeStore()
 
   async function loadUserData(userId: string) {
     const { data } = await supabase
@@ -34,18 +35,16 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
       .eq('user_id', userId)
       .single()
 
-    if (data?.selected_theme) {
-      setTheme(data.selected_theme)
-    } else {
-      setHasSelectedTheme(false)
-    }
+    // Default to dark if no theme saved yet
+    const theme = (data?.selected_theme as Theme) ?? 'dark'
+    setTheme(theme)
   }
 
   useEffect(() => {
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       setSession(session)
       if (session?.user) await loadUserData(session.user.id)
-      else setHasSelectedTheme(false)
+      else setTheme('dark')
       setIsLoading(false)
     })
 
@@ -55,12 +54,12 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
         loadUserData(session.user.id)
       }
       if (event === 'SIGNED_OUT') {
-        setHasSelectedTheme(null)
+        setTheme('dark')
       }
     })
 
     return () => subscription.unsubscribe()
-  }, [setSession, setIsLoading, setTheme, setHasSelectedTheme])
+  }, [])
 
   return children
 }

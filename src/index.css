@@ -1,66 +1,110 @@
-@import url('https://fonts.googleapis.com/css2?family=Cormorant:ital,wght@0,300;0,400;0,600;1,300&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cormorant:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap');
 @import 'tailwindcss';
 
-/* Theme CSS Custom Properties */
-:root {
-  --color-primary: #4A2C6E;
-  --color-mid: #7A4FA0;
-  --color-light: #F0E8F8;
-  --color-accent: #C0703A;
-  --color-accent-light: #FAF0E8;
+/* ─── Dark theme (default) ───────────────────────────────────────────────── */
+:root,
+[data-theme='dark'] {
+  --color-canvas:  #1A1420;
+  --color-card:    #221A2C;
+  --color-border:  rgba(122, 106, 138, 0.30);
+  --color-primary: #EDE8F5;
+  --color-mid:     #7A6A8A;
+  --color-accent:  #C88050;
+
+  color-scheme: dark;
 }
 
-[data-theme='sage-terracotta'] {
-  --color-primary: #3D5A47;
-  --color-mid: #6B8F71;
-  --color-light: #EAF2EC;
-  --color-accent: #B85C38;
-  --color-accent-light: #FBF3EE;
+/* ─── Light theme ────────────────────────────────────────────────────────── */
+[data-theme='light'] {
+  --color-canvas:  #F7F4F2;
+  --color-card:    #EDE8F0;
+  --color-border:  #D8D0E0;
+  --color-primary: #2A1E38;
+  --color-mid:     #6B5878;
+  --color-accent:  #A05E30;
+
+  color-scheme: light;
 }
 
-[data-theme='amber-plum'] {
-  --color-primary: #4A2C6E;
-  --color-mid: #7A4FA0;
-  --color-light: #F0E8F8;
-  --color-accent: #C0703A;
-  --color-accent-light: #FAF0E8;
-}
-
-[data-theme='midnight-gold'] {
-  --color-primary: #1A2E4A;
-  --color-mid: #2E5480;
-  --color-light: #E8F0F8;
-  --color-accent: #B8860B;
-  --color-accent-light: #FBF8EE;
-}
-
-[data-theme='rose-charcoal'] {
-  --color-primary: #4A3040;
-  --color-mid: #8B5A6A;
-  --color-light: #F8EEF2;
-  --color-accent: #6B6B6B;
-  --color-accent-light: #F5F3F0;
-}
-
-/* Tailwind theme extension via CSS */
+/* ─── Tailwind theme mapping ─────────────────────────────────────────────── */
 @theme {
+  --color-canvas:  var(--color-canvas);
+  --color-card:    var(--color-card);
+  --color-border:  var(--color-border);
   --color-primary: var(--color-primary);
-  --color-mid: var(--color-mid);
-  --color-light: var(--color-light);
-  --color-accent: var(--color-accent);
-  --color-accent-light: var(--color-accent-light);
+  --color-mid:     var(--color-mid);
+  --color-accent:  var(--color-accent);
+
+  --font-sans:    'DM Sans', system-ui, sans-serif;
+  --font-display: 'Cormorant', Georgia, serif;
 }
 
+/* ─── Base ───────────────────────────────────────────────────────────────── */
 body {
-  @apply text-primary min-h-screen antialiased;
+  font-family: 'DM Sans', system-ui, sans-serif;
+  font-weight: 300;
+  color: var(--color-primary);
+  background-color: var(--color-canvas);
+  min-height: 100svh;
   margin: 0;
-  background-color: var(--color-light);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 #root {
   min-height: 100svh;
 }
 
+/* ─── Typography utilities ───────────────────────────────────────────────── */
+
+/* Eyebrow — DM Sans 500, uppercase, tracked, accent */
+.eyebrow {
+  font-family: 'DM Sans', system-ui, sans-serif;
+  font-weight: 500;
+  font-size: 0.6875rem;   /* 11px */
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+}
+
+/* Display header — Cormorant italic */
+.display {
+  font-family: 'Cormorant', Georgia, serif;
+  font-style: italic;
+  font-weight: 300;
+  line-height: 1.05;
+  color: var(--color-primary);
+}
+
+/* Subhead — Cormorant italic, midtone */
+.subhead {
+  font-family: 'Cormorant', Georgia, serif;
+  font-style: italic;
+  font-weight: 300;
+  color: var(--color-mid);
+}
+
+/* Card utility ─────────────────────────────────────────────────────────── */
+.card {
+  background-color: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: 0.75rem;
+}
+
+/* Accent card — warm-tinted, used for primary action (Urge Protocol) */
+[data-theme='dark'] .card-accent {
+  background-color: #2A1E1A;
+  border: 1px solid rgba(200, 128, 80, 0.35);
+  border-radius: 0.75rem;
+}
+[data-theme='light'] .card-accent,
+:root .card-accent {
+  background-color: #EDE3D8;
+  border: 1px solid rgba(160, 94, 48, 0.30);
+  border-radius: 0.75rem;
+}
+
+/* ─── Animations ─────────────────────────────────────────────────────────── */
 @keyframes slide-up {
   from { transform: translateY(100%); }
   to   { transform: translateY(0); }
@@ -84,4 +128,15 @@ body {
 @keyframes breathe {
   0%, 100% { opacity: 1; }
   50%       { opacity: 0.6; }
+}
+
+/* ─── Theme transition ───────────────────────────────────────────────────── */
+*, *::before, *::after {
+  transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
+}
+
+/* Disable transition on elements where it would cause flicker */
+[data-no-transition],
+[data-no-transition] * {
+  transition: none !important;
 }

@@ -27,6 +27,59 @@ type Outcome = 'passed' | 'acted_on'
 // Active tool steps — swipe-down dismiss is disabled here
 const ACTIVE_STEPS = new Set<UrgeStep>(['surfing_active', 'replacement_active', 'delay_active'])
 
+// ─── Shared styles ────────────────────────────────────────────────────────────
+
+const eyebrowStyle: React.CSSProperties = {
+  fontFamily: "'DM Sans', system-ui, sans-serif",
+  fontWeight: 500,
+  fontSize: '11px',
+  letterSpacing: '0.2em',
+  textTransform: 'uppercase',
+  color: 'var(--color-mid)',
+}
+
+const navBtnStyle: React.CSSProperties = {
+  fontFamily: "'DM Sans', system-ui, sans-serif",
+  fontWeight: 400,
+  fontSize: '12px',
+  letterSpacing: '0.12em',
+  textTransform: 'uppercase',
+  color: 'var(--color-mid)',
+  background: 'none',
+  border: 'none',
+  padding: 0,
+  cursor: 'pointer',
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: '6px',
+}
+
+const primaryBtnStyle: React.CSSProperties = {
+  fontFamily: "'DM Sans', system-ui, sans-serif",
+  fontWeight: 500,
+  fontSize: '13px',
+  backgroundColor: 'var(--color-primary)',
+  color: 'var(--color-canvas)',
+  border: 'none',
+  borderRadius: '0.75rem',
+  padding: '12px 24px',
+  cursor: 'pointer',
+}
+
+const ghostBtnStyle: React.CSSProperties = {
+  fontFamily: "'DM Sans', system-ui, sans-serif",
+  fontWeight: 400,
+  fontSize: '11px',
+  letterSpacing: '0.12em',
+  textTransform: 'uppercase',
+  color: 'var(--color-mid)',
+  background: 'none',
+  border: 'none',
+  padding: 0,
+  cursor: 'pointer',
+  opacity: 0.7,
+}
+
 // ─── Main export ──────────────────────────────────────────────────────────────
 
 interface Props {
@@ -91,7 +144,7 @@ export function UrgeProtocol({ onClose }: Props) {
         driver_key: driverKey,
         replacement_used: replacementUsed,
         outcome,
-        routed_to_collapse: false, // updated to true if user taps "Log the collapse"
+        routed_to_collapse: false,
       }).select('id').single()
       if (data) setUrgeLogId(data.id)
     },
@@ -153,17 +206,24 @@ export function UrgeProtocol({ onClose }: Props) {
   // ── Derived ───────────────────────────────────────────────────────────────────
   const selectedDriver = selectedHabit?.habit_drivers.find(d => d.key === driverKey) ?? null
 
-  const overlayStyle: React.CSSProperties =
+  const overlayMotion: React.CSSProperties =
     dragY > 0
       ? { transform: `translateY(${dragY}px)`, transition: 'none' }
       : isSnapping
         ? { transform: 'translateY(0)', transition: 'transform 200ms ease-out' }
         : { animation: 'slide-up 320ms cubic-bezier(0.32, 0.72, 0, 1) both' }
 
+  const overlayBase: React.CSSProperties = {
+    position: 'fixed',
+    inset: 0,
+    backgroundColor: 'var(--color-canvas)',
+    zIndex: 50,
+    overflow: 'hidden',
+  }
+
   return (
     <div
-      className="fixed inset-0 bg-light z-50 overflow-hidden"
-      style={step === 'logged_success' ? undefined : overlayStyle}
+      style={step === 'logged_success' ? overlayBase : { ...overlayBase, ...overlayMotion }}
       onTouchStart={onTouchStart}
       onTouchMove={onTouchMove}
       onTouchEnd={onTouchEnd}
@@ -175,95 +235,106 @@ export function UrgeProtocol({ onClose }: Props) {
           onLogCollapse={outcome === 'acted_on' ? () => { markRoutedToCollapse(); setShowCollapseHandoff(true) } : undefined}
         />
       ) : (
-      <div className="max-w-lg mx-auto px-6 pt-12 pb-24 min-h-screen">
+        <div style={{
+          maxWidth: '32rem',
+          margin: '0 auto',
+          padding: '48px 24px 96px',
+          minHeight: '100vh',
+        }}>
 
-        {/* Drag handle — visible on swipeable states only */}
-        {!isActive && (
-          <div className="flex justify-center mb-8">
-            <div className="w-10 h-1 rounded-full bg-mid/30" />
-          </div>
-        )}
+          {/* Drag handle — visible on swipeable states only */}
+          {!isActive && (
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '32px' }}>
+              <div style={{
+                width: '40px',
+                height: '4px',
+                borderRadius: '2px',
+                backgroundColor: 'var(--color-mid)',
+                opacity: 0.3,
+              }} />
+            </div>
+          )}
 
-        {step === 'habit_select' && (
-          <HabitSelectScreen
-            habits={breakHabits}
-            isLoading={isLoading}
-            onSelect={(h) => { setSelectedHabit(h); setStep('urge_entry') }}
-            onClose={onClose}
-          />
-        )}
+          {step === 'habit_select' && (
+            <HabitSelectScreen
+              habits={breakHabits}
+              isLoading={isLoading}
+              onSelect={(h) => { setSelectedHabit(h); setStep('urge_entry') }}
+              onClose={onClose}
+            />
+          )}
 
-        {step === 'urge_entry' && selectedHabit && (
-          <UrgeEntryScreen
-            habitName={selectedHabit.name}
-            intensity={intensity}
-            onSelect={setIntensity}
-            onContinue={() => setStep('driver_select')}
-            onBack={breakHabits.length > 1 ? () => setStep('habit_select') : undefined}
-            onClose={onClose}
-          />
-        )}
+          {step === 'urge_entry' && selectedHabit && (
+            <UrgeEntryScreen
+              habitName={selectedHabit.name}
+              intensity={intensity}
+              onSelect={setIntensity}
+              onContinue={() => setStep('driver_select')}
+              onBack={breakHabits.length > 1 ? () => setStep('habit_select') : undefined}
+              onClose={onClose}
+            />
+          )}
 
-        {step === 'driver_select' && selectedHabit && (
-          <DriverSelectScreen
-            habit={selectedHabit}
-            driverKey={driverKey}
-            onSelect={setDriverKey}
-            onContinue={() => setStep('tool_select')}
-            onBack={() => setStep('urge_entry')}
-            onClose={onClose}
-          />
-        )}
+          {step === 'driver_select' && selectedHabit && (
+            <DriverSelectScreen
+              habit={selectedHabit}
+              driverKey={driverKey}
+              onSelect={setDriverKey}
+              onContinue={() => setStep('tool_select')}
+              onBack={() => setStep('urge_entry')}
+              onClose={onClose}
+            />
+          )}
 
-        {step === 'tool_select' && (
-          <ToolSelectScreen
-            onStart={startTool}
-            onBack={() => setStep('driver_select')}
-            onClose={onClose}
-          />
-        )}
+          {step === 'tool_select' && (
+            <ToolSelectScreen
+              onStart={startTool}
+              onBack={() => setStep('driver_select')}
+              onClose={onClose}
+            />
+          )}
 
-        {step === 'surfing_active' && (
-          <SurfingScreen
-            elapsedMs={elapsedMs}
-            onActedOn={() => handleResolution('acted_on')}
-            onPassed={() => handleResolution('passed')}
-          />
-        )}
+          {step === 'surfing_active' && (
+            <SurfingScreen
+              elapsedMs={elapsedMs}
+              onActedOn={() => handleResolution('acted_on')}
+              onPassed={() => handleResolution('passed')}
+            />
+          )}
 
-        {step === 'replacement_select' && selectedDriver && (
-          <ReplacementSelectScreen
-            driver={selectedDriver}
-            onSelect={(r) => { setReplacementUsed(r); setStep('replacement_active') }}
-            onBack={() => setStep('tool_select')}
-            onClose={onClose}
-          />
-        )}
+          {step === 'replacement_select' && selectedDriver && (
+            <ReplacementSelectScreen
+              driver={selectedDriver}
+              onSelect={(r) => { setReplacementUsed(r); setStep('replacement_active') }}
+              onBack={() => setStep('tool_select')}
+              onClose={onClose}
+            />
+          )}
 
-        {step === 'replacement_active' && replacementUsed && (
-          <ReplacementActiveScreen
-            replacement={replacementUsed}
-            onDone={() => handleResolution('passed')}
-            onActedOn={() => handleResolution('acted_on')}
-          />
-        )}
+          {step === 'replacement_active' && replacementUsed && (
+            <ReplacementActiveScreen
+              replacement={replacementUsed}
+              onDone={() => handleResolution('passed')}
+              onActedOn={() => handleResolution('acted_on')}
+            />
+          )}
 
-        {step === 'delay_active' && (
-          <DelayScreen
-            elapsedMs={elapsedMs}
-            onActedOn={() => handleResolution('acted_on')}
-            onPassed={() => handleResolution('passed')}
-          />
-        )}
+          {step === 'delay_active' && (
+            <DelayScreen
+              elapsedMs={elapsedMs}
+              onActedOn={() => handleResolution('acted_on')}
+              onPassed={() => handleResolution('passed')}
+            />
+          )}
 
-        {step === 'resolution' && (
-          <ResolutionScreen
-            onActedOn={() => handleResolution('acted_on')}
-            onPassed={() => handleResolution('passed')}
-          />
-        )}
+          {step === 'resolution' && (
+            <ResolutionScreen
+              onActedOn={() => handleResolution('acted_on')}
+              onPassed={() => handleResolution('passed')}
+            />
+          )}
 
-      </div>
+        </div>
       )}
 
       {showCollapseHandoff && selectedHabit && (
@@ -287,25 +358,22 @@ function NavBar({
   onClose?: () => void
 }) {
   return (
-    <div className="flex justify-between items-center mb-10">
+    <div style={{
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: '40px',
+    }}>
       {onBack ? (
-        <button
-          onClick={onBack}
-          className="inline-flex items-center gap-1.5 text-xs text-mid hover:text-primary transition-colors"
-        >
+        <button onClick={onBack} style={navBtnStyle}>
           <span>←</span>
-          <span className="uppercase tracking-[0.15em]">Back</span>
+          <span>Back</span>
         </button>
       ) : (
         <div />
       )}
       {onClose && (
-        <button
-          onClick={onClose}
-          className="text-xs text-mid hover:text-primary transition-colors uppercase tracking-[0.15em]"
-        >
-          Close
-        </button>
+        <button onClick={onClose} style={navBtnStyle}>Close</button>
       )}
     </div>
   )
@@ -321,7 +389,7 @@ function BreathingArc({ elapsedMs, totalMs }: { elapsedMs: number; totalMs: numb
   const s = secondsLeft % 60
 
   return (
-    <div className="flex justify-center">
+    <div style={{ display: 'flex', justifyContent: 'center' }}>
       <svg width="140" height="140" viewBox="0 0 120 120">
         {/* Track */}
         <circle
@@ -377,40 +445,74 @@ function HabitSelectScreen({
 }) {
   return (
     <div>
-      <button
-        onClick={onClose}
-        className="inline-flex items-center gap-1.5 text-xs text-mid hover:text-primary transition-colors mb-10"
-      >
+      <button onClick={onClose} style={{ ...navBtnStyle, marginBottom: '40px' }}>
         <span>←</span>
-        <span className="uppercase tracking-[0.15em]">Close</span>
+        <span>Close</span>
       </button>
 
-      <header className="mb-10">
-        <h1
-          className="text-primary leading-tight"
-          style={{ fontFamily: "'Cormorant', Georgia, serif", fontWeight: 300, fontSize: 'clamp(2.4rem, 8vw, 3.2rem)' }}
-        >
+      <header style={{ marginBottom: '40px' }}>
+        <h1 style={{
+          fontFamily: "'Cormorant', Georgia, serif",
+          fontWeight: 300,
+          fontSize: 'clamp(2.4rem, 8vw, 3.2rem)',
+          color: 'var(--color-primary)',
+          lineHeight: 1.1,
+        }}>
           You're in an urge.
         </h1>
-        <p className="text-xs uppercase tracking-[0.2em] text-mid mt-3">Which habit?</p>
-        <div className="mt-4 h-px bg-mid/20" />
+        <p style={{ ...eyebrowStyle, marginTop: '12px' }}>Which habit?</p>
+        <div style={{
+          marginTop: '16px',
+          height: '1px',
+          backgroundColor: 'var(--color-border)',
+        }} />
       </header>
 
       {isLoading ? (
-        <div className="space-y-3">
-          <div className="h-16 rounded-xl bg-mid/10 animate-pulse" />
-          <div className="h-16 rounded-xl bg-mid/10 animate-pulse" />
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          {[1, 2].map((n) => (
+            <div key={n} style={{
+              height: '64px',
+              borderRadius: '0.75rem',
+              backgroundColor: 'var(--color-mid)',
+              opacity: 0.1,
+            }} />
+          ))}
         </div>
       ) : (
-        <div className="space-y-3">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           {habits.map((h) => (
             <button
               key={h.id}
               onClick={() => onSelect(h)}
-              className="w-full flex items-center justify-between py-5 px-5 bg-accent-light border border-mid/10 rounded-xl hover:border-mid/30 transition-colors group"
+              style={{
+                width: '100%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '20px',
+                backgroundColor: 'var(--color-card)',
+                border: '1px solid var(--color-border)',
+                borderRadius: '0.75rem',
+                cursor: 'pointer',
+                textAlign: 'left',
+              }}
             >
-              <p className="font-medium text-primary text-left">{h.name}</p>
-              <span className="text-mid opacity-30 group-hover:opacity-70 transition-opacity text-sm">→</span>
+              <span style={{
+                fontFamily: "'DM Sans', system-ui, sans-serif",
+                fontWeight: 500,
+                fontSize: '14px',
+                color: 'var(--color-primary)',
+              }}>
+                {h.name}
+              </span>
+              <span style={{
+                fontSize: '13px',
+                color: 'var(--color-mid)',
+                opacity: 0.5,
+              }}>
+                →
+              </span>
             </button>
           ))}
         </div>
@@ -440,13 +542,16 @@ function UrgeEntryScreen({
     <div>
       <NavBar onBack={onBack} onClose={onClose} />
 
-      <div className="space-y-8">
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
         <div>
-          <p className="text-xs uppercase tracking-[0.2em] text-mid mb-5">{habitName}</p>
-          <p
-            className="text-primary leading-snug"
-            style={{ fontFamily: "'Cormorant', Georgia, serif", fontWeight: 300, fontSize: 'clamp(1.6rem, 5vw, 2rem)' }}
-          >
+          <p style={{ ...eyebrowStyle, marginBottom: '20px' }}>{habitName}</p>
+          <p style={{
+            fontFamily: "'Cormorant', Georgia, serif",
+            fontWeight: 300,
+            fontSize: 'clamp(1.6rem, 5vw, 2rem)',
+            color: 'var(--color-primary)',
+            lineHeight: 1.35,
+          }}>
             You're in an urge.<br />
             You opened the app.<br />
             That already matters.
@@ -454,19 +559,26 @@ function UrgeEntryScreen({
         </div>
 
         <div>
-          <p className="text-xs uppercase tracking-[0.2em] text-mid mb-4">Intensity</p>
-          <div className="flex flex-wrap gap-2">
+          <p style={{ ...eyebrowStyle, marginBottom: '16px' }}>Intensity</p>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
             {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
               <button
                 key={n}
                 onClick={() => onSelect(n)}
-                className={`w-10 h-10 rounded-xl text-sm font-medium transition-all duration-150 ${
-                  intensity === n
-                    ? 'bg-primary text-light'
-                    : intensity !== null
-                      ? 'border border-mid/20 text-primary opacity-40'
-                      : 'border border-mid/25 text-primary hover:border-mid/50'
-                }`}
+                style={{
+                  width: '40px',
+                  height: '40px',
+                  borderRadius: '0.75rem',
+                  border: `1px solid ${intensity === n ? 'var(--color-primary)' : 'var(--color-border)'}`,
+                  backgroundColor: intensity === n ? 'var(--color-primary)' : 'transparent',
+                  fontFamily: "'DM Sans', system-ui, sans-serif",
+                  fontWeight: intensity === n ? 500 : 400,
+                  fontSize: '13px',
+                  color: intensity === n ? 'var(--color-canvas)' : intensity !== null ? 'var(--color-mid)' : 'var(--color-primary)',
+                  opacity: intensity !== null && intensity !== n ? 0.4 : 1,
+                  cursor: 'pointer',
+                  transition: 'all 150ms ease',
+                }}
               >
                 {n}
               </button>
@@ -477,7 +589,7 @@ function UrgeEntryScreen({
         <button
           onClick={onContinue}
           disabled={intensity === null}
-          className="px-6 py-2.5 bg-primary text-light text-sm rounded-xl disabled:opacity-40"
+          style={{ ...primaryBtnStyle, opacity: intensity !== null ? 1 : 0.4, alignSelf: 'flex-start' }}
         >
           Continue
         </button>
@@ -507,29 +619,39 @@ function DriverSelectScreen({
     <div>
       <NavBar onBack={onBack} onClose={onClose} />
 
-      <div className="space-y-8">
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
         <div>
-          <p className="text-xs uppercase tracking-[0.2em] text-mid mb-5">{habit.name}</p>
-          <p
-            className="text-primary leading-snug"
-            style={{ fontFamily: "'Cormorant', Georgia, serif", fontWeight: 400, fontSize: 'clamp(1.4rem, 4vw, 1.75rem)' }}
-          >
+          <p style={{ ...eyebrowStyle, marginBottom: '20px' }}>{habit.name}</p>
+          <p style={{
+            fontFamily: "'Cormorant', Georgia, serif",
+            fontWeight: 400,
+            fontSize: 'clamp(1.4rem, 4vw, 1.75rem)',
+            color: 'var(--color-primary)',
+            lineHeight: 1.3,
+          }}>
             Which job is it doing right now?
           </p>
         </div>
 
-        <div className="flex flex-wrap gap-2">
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
           {habit.habit_drivers.map((d) => (
             <button
               key={d.key}
               onClick={() => onSelect(d.key)}
-              className={`px-4 py-2.5 rounded-xl border text-sm transition-all duration-150 ${
-                driverKey === d.key
-                  ? 'bg-primary text-light border-primary'
-                  : driverKey !== null
-                    ? 'border-mid/20 text-primary opacity-40'
-                    : 'border-mid/25 text-primary hover:border-mid/40'
-              }`}
+              style={{
+                padding: '8px 16px',
+                borderRadius: '2rem',
+                border: `1px solid ${driverKey === d.key ? 'var(--color-accent)' : 'var(--color-border)'}`,
+                backgroundColor: driverKey === d.key ? 'var(--color-card)' : 'transparent',
+                fontFamily: "'DM Sans', system-ui, sans-serif",
+                fontWeight: driverKey === d.key ? 500 : 400,
+                fontSize: '13px',
+                color: driverKey === d.key ? 'var(--color-primary)' : 'var(--color-mid)',
+                opacity: driverKey !== null && driverKey !== d.key ? 0.4 : 1,
+                cursor: 'pointer',
+                transition: 'all 150ms ease',
+                whiteSpace: 'nowrap',
+              }}
             >
               {d.label}
             </button>
@@ -539,7 +661,7 @@ function DriverSelectScreen({
         <button
           onClick={onContinue}
           disabled={!driverKey}
-          className="px-6 py-2.5 bg-primary text-light text-sm rounded-xl disabled:opacity-40"
+          style={{ ...primaryBtnStyle, opacity: driverKey ? 1 : 0.4, alignSelf: 'flex-start' }}
         >
           Continue
         </button>
@@ -583,27 +705,51 @@ function ToolSelectScreen({
     <div>
       <NavBar onBack={onBack} onClose={onClose} />
 
-      <div className="space-y-8">
-        <p
-          className="text-primary leading-snug"
-          style={{ fontFamily: "'Cormorant', Georgia, serif", fontWeight: 400, fontSize: 'clamp(1.4rem, 4vw, 1.75rem)' }}
-        >
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+        <p style={{
+          fontFamily: "'Cormorant', Georgia, serif",
+          fontWeight: 400,
+          fontSize: 'clamp(1.4rem, 4vw, 1.75rem)',
+          color: 'var(--color-primary)',
+          lineHeight: 1.3,
+        }}>
           Choose a tool.
         </p>
 
-        <div className="space-y-3">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           {TOOLS.map((tool) => (
             <button
               key={tool.id}
               onClick={() => setSelected(tool.id)}
-              className={`w-full py-5 px-5 rounded-xl border text-left transition-all duration-200 ${
-                selected === tool.id
-                  ? 'border-accent bg-accent-light'
-                  : 'border-mid/20 hover:border-mid/40'
-              }`}
+              style={{
+                width: '100%',
+                padding: '20px',
+                borderRadius: '0.75rem',
+                border: `1px solid ${selected === tool.id ? 'var(--color-accent)' : 'var(--color-border)'}`,
+                backgroundColor: selected === tool.id ? 'var(--color-card)' : 'transparent',
+                textAlign: 'left',
+                cursor: 'pointer',
+                transition: 'all 200ms ease',
+              }}
             >
-              <p className="font-medium text-primary text-sm mb-1">{tool.name}</p>
-              <p className="text-xs text-mid leading-relaxed">{tool.description}</p>
+              <p style={{
+                fontFamily: "'DM Sans', system-ui, sans-serif",
+                fontWeight: 500,
+                fontSize: '13px',
+                color: 'var(--color-primary)',
+                marginBottom: '4px',
+              }}>
+                {tool.name}
+              </p>
+              <p style={{
+                fontFamily: "'DM Sans', system-ui, sans-serif",
+                fontWeight: 300,
+                fontSize: '12px',
+                color: 'var(--color-mid)',
+                lineHeight: 1.5,
+              }}>
+                {tool.description}
+              </p>
             </button>
           ))}
         </div>
@@ -611,7 +757,7 @@ function ToolSelectScreen({
         <button
           onClick={() => selected && onStart(selected)}
           disabled={!selected}
-          className="px-6 py-2.5 bg-primary text-light text-sm rounded-xl disabled:opacity-40"
+          style={{ ...primaryBtnStyle, opacity: selected ? 1 : 0.4, alignSelf: 'flex-start' }}
         >
           Start
         </button>
@@ -632,29 +778,46 @@ function SurfingScreen({
   onPassed: () => void
 }) {
   return (
-    <div className="flex flex-col items-center justify-center min-h-[70vh]">
-      <p className="text-xs uppercase tracking-[0.2em] text-mid mb-12">Surfing</p>
+    <div style={{
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      minHeight: '70vh',
+    }}>
+      <p style={{ ...eyebrowStyle, marginBottom: '48px' }}>Surfing</p>
 
       <BreathingArc elapsedMs={elapsedMs} totalMs={TIMER_MS} />
 
-      <p
-        className="text-center mt-10 mb-16 max-w-[200px] leading-relaxed text-mid"
-        style={{ fontFamily: "'Cormorant', Georgia, serif", fontStyle: 'italic', fontSize: '1rem' }}
-      >
+      <p style={{
+        fontFamily: "'Cormorant', Georgia, serif",
+        fontStyle: 'italic',
+        fontWeight: 300,
+        fontSize: '1rem',
+        color: 'var(--color-mid)',
+        lineHeight: 1.6,
+        textAlign: 'center',
+        maxWidth: '200px',
+        margin: '40px 0 64px',
+      }}>
         Observe it. You don't have to act on it.
       </p>
 
-      <div className="flex flex-col items-center gap-4 w-full max-w-xs">
+      <div style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: '16px',
+        width: '100%',
+        maxWidth: '280px',
+      }}>
         <button
           onClick={onPassed}
-          className="w-full py-3 bg-primary text-light text-sm rounded-xl"
+          style={{ ...primaryBtnStyle, width: '100%', textAlign: 'center' }}
         >
           It passed
         </button>
-        <button
-          onClick={onActedOn}
-          className="text-xs text-mid/60 hover:text-mid transition-colors uppercase tracking-[0.15em]"
-        >
+        <button onClick={onActedOn} style={ghostBtnStyle}>
           I acted on it
         </button>
       </div>
@@ -679,23 +842,39 @@ function ReplacementSelectScreen({
     <div>
       <NavBar onBack={onBack} onClose={onClose} />
 
-      <div className="space-y-8">
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
         <div>
-          <p className="text-xs uppercase tracking-[0.2em] text-mid mb-5">{driver.label}</p>
-          <p
-            className="text-primary leading-snug"
-            style={{ fontFamily: "'Cormorant', Georgia, serif", fontWeight: 400, fontSize: 'clamp(1.4rem, 4vw, 1.75rem)' }}
-          >
+          <p style={{ ...eyebrowStyle, marginBottom: '20px' }}>{driver.label}</p>
+          <p style={{
+            fontFamily: "'Cormorant', Georgia, serif",
+            fontWeight: 400,
+            fontSize: 'clamp(1.4rem, 4vw, 1.75rem)',
+            color: 'var(--color-primary)',
+            lineHeight: 1.3,
+          }}>
             Which replacement?
           </p>
         </div>
 
-        <div className="space-y-2">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
           {driver.replacements.map((r) => (
             <button
               key={r}
               onClick={() => onSelect(r)}
-              className="w-full py-4 px-5 rounded-xl border border-mid/20 text-left text-sm text-primary hover:border-mid/40 hover:bg-accent-light/50 transition-all"
+              style={{
+                width: '100%',
+                padding: '16px 20px',
+                borderRadius: '0.75rem',
+                border: '1px solid var(--color-border)',
+                backgroundColor: 'transparent',
+                textAlign: 'left',
+                fontFamily: "'DM Sans', system-ui, sans-serif",
+                fontWeight: 400,
+                fontSize: '13px',
+                color: 'var(--color-primary)',
+                cursor: 'pointer',
+                transition: 'all 150ms ease',
+              }}
             >
               {r}
             </button>
@@ -718,30 +897,28 @@ function ReplacementActiveScreen({
   onActedOn: () => void
 }) {
   return (
-    <div className="flex flex-col min-h-[65vh] justify-center">
-      <div className="space-y-10">
-        <p
-          className="text-primary leading-tight"
-          style={{
-            fontFamily: "'Cormorant', Georgia, serif",
-            fontWeight: 300,
-            fontSize: 'clamp(2rem, 6vw, 2.6rem)',
-          }}
-        >
+    <div style={{
+      display: 'flex',
+      flexDirection: 'column',
+      justifyContent: 'center',
+      minHeight: '65vh',
+    }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '40px' }}>
+        <p style={{
+          fontFamily: "'Cormorant', Georgia, serif",
+          fontWeight: 300,
+          fontSize: 'clamp(2rem, 6vw, 2.6rem)',
+          color: 'var(--color-primary)',
+          lineHeight: 1.2,
+        }}>
           {replacement}
         </p>
 
-        <div className="flex flex-col gap-4">
-          <button
-            onClick={onDone}
-            className="px-6 py-3 bg-primary text-light text-sm rounded-xl self-start"
-          >
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', alignItems: 'flex-start' }}>
+          <button onClick={onDone} style={primaryBtnStyle}>
             Done
           </button>
-          <button
-            onClick={onActedOn}
-            className="text-xs text-mid/60 hover:text-mid transition-colors uppercase tracking-[0.15em] self-start"
-          >
+          <button onClick={onActedOn} style={ghostBtnStyle}>
             I acted on it anyway
           </button>
         </div>
@@ -762,29 +939,46 @@ function DelayScreen({
   onPassed: () => void
 }) {
   return (
-    <div className="flex flex-col items-center justify-center min-h-[70vh]">
-      <p className="text-xs uppercase tracking-[0.2em] text-mid mb-12">Delay</p>
+    <div style={{
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      minHeight: '70vh',
+    }}>
+      <p style={{ ...eyebrowStyle, marginBottom: '48px' }}>Delay</p>
 
       <BreathingArc elapsedMs={elapsedMs} totalMs={TIMER_MS} />
 
-      <p
-        className="text-center mt-10 mb-16 max-w-[220px] leading-relaxed text-mid"
-        style={{ fontFamily: "'Cormorant', Georgia, serif", fontStyle: 'italic', fontSize: '1rem' }}
-      >
+      <p style={{
+        fontFamily: "'Cormorant', Georgia, serif",
+        fontStyle: 'italic',
+        fontWeight: 300,
+        fontSize: '1rem',
+        color: 'var(--color-mid)',
+        lineHeight: 1.6,
+        textAlign: 'center',
+        maxWidth: '220px',
+        margin: '40px 0 64px',
+      }}>
         Ten minutes. If it still wants to be there after that, it can.
       </p>
 
-      <div className="flex flex-col items-center gap-4 w-full max-w-xs">
+      <div style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: '16px',
+        width: '100%',
+        maxWidth: '280px',
+      }}>
         <button
           onClick={onPassed}
-          className="w-full py-3 bg-primary text-light text-sm rounded-xl"
+          style={{ ...primaryBtnStyle, width: '100%', textAlign: 'center' }}
         >
           It passed early
         </button>
-        <button
-          onClick={onActedOn}
-          className="text-xs text-mid/60 hover:text-mid transition-colors uppercase tracking-[0.15em]"
-        >
+        <button onClick={onActedOn} style={ghostBtnStyle}>
           I acted on it
         </button>
       </div>
@@ -802,25 +996,52 @@ function ResolutionScreen({
   onPassed: () => void
 }) {
   return (
-    <div className="flex flex-col min-h-[60vh] justify-center" style={{ animation: 'fade-in 300ms ease-out' }}>
-      <div className="space-y-8">
-        <p
-          className="text-primary leading-snug"
-          style={{ fontFamily: "'Cormorant', Georgia, serif", fontWeight: 300, fontSize: 'clamp(1.6rem, 5vw, 2rem)' }}
-        >
+    <div style={{
+      display: 'flex',
+      flexDirection: 'column',
+      justifyContent: 'center',
+      minHeight: '60vh',
+      animation: 'fade-in 300ms ease-out',
+    }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+        <p style={{
+          fontFamily: "'Cormorant', Georgia, serif",
+          fontWeight: 300,
+          fontSize: 'clamp(1.6rem, 5vw, 2rem)',
+          color: 'var(--color-primary)',
+          lineHeight: 1.3,
+        }}>
           Time's up.
         </p>
-        <p className="text-sm text-mid">How did it go?</p>
-        <div className="flex flex-col gap-3">
+        <p style={{
+          fontFamily: "'DM Sans', system-ui, sans-serif",
+          fontWeight: 300,
+          fontSize: '13px',
+          color: 'var(--color-mid)',
+        }}>
+          How did it go?
+        </p>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', alignItems: 'flex-start' }}>
           <button
             onClick={onPassed}
-            className="px-6 py-3 bg-primary text-light text-sm rounded-xl self-start min-w-[160px]"
+            style={{ ...primaryBtnStyle, minWidth: '160px' }}
           >
             It passed
           </button>
           <button
             onClick={onActedOn}
-            className="px-6 py-3 border border-mid/30 text-primary text-sm rounded-xl self-start min-w-[160px] hover:border-mid/50 transition-colors"
+            style={{
+              fontFamily: "'DM Sans', system-ui, sans-serif",
+              fontWeight: 400,
+              fontSize: '13px',
+              color: 'var(--color-primary)',
+              backgroundColor: 'transparent',
+              border: '1px solid var(--color-border)',
+              borderRadius: '0.75rem',
+              padding: '12px 24px',
+              cursor: 'pointer',
+              minWidth: '160px',
+            }}
           >
             I acted on it
           </button>
@@ -850,7 +1071,6 @@ function SuccessScreen({
   const [showAction, setShowAction] = useState(false)
   const [line1, line2] = CLOSING_COPY[outcome]
 
-  // Use a ref so the callback is always current without being a dependency
   const onCloseRef = useRef(onClose)
   onCloseRef.current = onClose
 
@@ -866,13 +1086,23 @@ function SuccessScreen({
   }, [outcome, line2])
 
   return (
-    <div className="flex flex-col min-h-screen justify-center px-6 max-w-lg mx-auto">
+    <div style={{
+      display: 'flex',
+      flexDirection: 'column',
+      justifyContent: 'center',
+      minHeight: '100vh',
+      padding: '0 24px',
+      maxWidth: '32rem',
+      margin: '0 auto',
+    }}>
       <p
-        className="text-primary leading-snug mb-4"
         style={{
           fontFamily: "'Cormorant', Georgia, serif",
           fontWeight: 300,
           fontSize: 'clamp(1.8rem, 5vw, 2.4rem)',
+          color: 'var(--color-primary)',
+          lineHeight: 1.3,
+          marginBottom: '16px',
           animation: 'fade-in 300ms ease-out',
         }}
       >
@@ -881,11 +1111,13 @@ function SuccessScreen({
 
       {line2 && (
         <p
-          className="text-mid leading-relaxed mb-10"
           style={{
             fontFamily: "'Cormorant', Georgia, serif",
             fontWeight: 300,
             fontSize: 'clamp(1.2rem, 4vw, 1.6rem)',
+            color: 'var(--color-mid)',
+            lineHeight: 1.4,
+            marginBottom: '40px',
             opacity: showLine2 ? 1 : 0,
             transition: 'opacity 500ms ease-out',
           }}
@@ -896,29 +1128,28 @@ function SuccessScreen({
 
       {onLogCollapse && (
         <div
-          className="flex items-center justify-between"
           style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
             opacity: showAction ? 1 : 0,
             transition: 'opacity 400ms ease-out',
           }}
         >
-          <button
-            onClick={onLogCollapse}
-            className="px-6 py-2.5 bg-primary text-light text-sm rounded-xl"
-          >
+          <button onClick={onLogCollapse} style={primaryBtnStyle}>
             Log the collapse
           </button>
-          <button
-            onClick={onClose}
-            className="text-xs text-mid/60 hover:text-mid transition-colors uppercase tracking-[0.15em]"
-          >
+          <button onClick={onClose} style={ghostBtnStyle}>
             Not now
           </button>
         </div>
       )}
 
       {!onLogCollapse && (
-        <div className="cursor-pointer absolute inset-0" onClick={onClose} />
+        <div
+          style={{ cursor: 'pointer', position: 'absolute', inset: 0 }}
+          onClick={onClose}
+        />
       )}
     </div>
   )
