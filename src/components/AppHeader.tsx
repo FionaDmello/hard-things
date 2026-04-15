@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { Link } from '@tanstack/react-router'
 import { Moon, Sun } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuthStore, useThemeStore } from '../stores'
