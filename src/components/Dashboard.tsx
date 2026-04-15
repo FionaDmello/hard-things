@@ -98,7 +98,7 @@ export function Dashboard() {
                   <h2
                     className="font-display italic font-light text-[1.2rem] text-primary leading-tight"
                   >
-                    {habit.name}
+                    {habit.name} <span className="text-xs text-mid">(break)</span>
                   </h2>
                   {habit.current_phase && (
                     <span className="eyebrow text-mid shrink-0 pt-0.5">
@@ -113,7 +113,7 @@ export function Dashboard() {
             {buildHabits.map((habit) => (
               <div key={habit.id} className="card p-5">
                 <h2 className="font-display italic font-light text-[1.2rem] text-primary leading-tight mb-1">
-                  {habit.name}
+                  {habit.name} <span className="text-xs text-mid">(build)</span>
                 </h2>
                 <CheckInFormBuild habit={habit} />
               </div>
